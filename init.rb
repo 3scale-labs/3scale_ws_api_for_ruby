@@ -1,1 +1,1 @@
-require '3scale_interface'
+require "#{File.dirname(__FILE__)}/lib/interface"
