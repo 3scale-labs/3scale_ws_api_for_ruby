@@ -2,9 +2,6 @@ require 'cgi'
 require 'hpricot'
 require 'net/http'
 
-# TODO: document this
-# TODO: refactor this
-
 module ThreeScale
   class Error < StandardError; end
   class InvalidRequest < Error; end
@@ -70,18 +67,21 @@ module ThreeScale
       params.merge!(encode_params(reports, 'values'))
       response = Net::HTTP.post_form(uri, params)
 
-      if response.is_a?(Net::HTTPCreated)
+      # Accept also 200 OK, although 201 Created should be returned.
+      if response.is_a?(Net::HTTPCreated) || response.is_a?(Net::HTTPOK)
         element = Hpricot.parse(response.body).at('transaction')
         [:id, :provider_public_key, :contract_name].inject({}) do |memo, key|
           memo[key] = element.at(key).inner_text if element.at(key)
           memo
         end
       else
-        handle_error(response)
+        handle_response(response)
       end
     end
 
     # Confirm previously started transaction.
+    #
+    #
     def confirm(transaction_id, reports = {})
       uri = URI.parse("#{host}/transactions/#{CGI.escape(transaction_id.to_s)}/confirm.xml")
       params = {
@@ -89,11 +89,12 @@ module ThreeScale
       }
       params.merge!(encode_params(reports, 'values'))
 
-      response = Net::HTTP.post_form(uri, params)
-      response.is_a?(Net::HTTPOK) || handle_error(response)
+      handle_response(Net::HTTP.post_form(uri, params))
     end
 
     # Cancel previously started transaction.
+    #
+    #
     def cancel(transaction_id)
       uri = URI.parse("#{host}/transactions/#{CGI.escape(transaction_id.to_s)}.xml" +
           "?provider_key=#{CGI.escape(provider_private_key)}")
@@ -102,7 +103,7 @@ module ThreeScale
         http.delete("#{uri.path}?#{uri.query}")
       end
 
-      response.is_a?(Net::HTTPOK) || handle_error(response)
+      handle_response(response)
     end
 
     private
@@ -120,10 +121,10 @@ module ThreeScale
       element && element.inner_text
     end
 
-    def handle_error(response)
+    def handle_response(response)
       case response
-      when Net::HTTPSuccess
-        false
+      when Net::HTTPOK
+        true
       when Net::HTTPForbidden, Net::HTTPBadRequest
         raise InvalidRequest, decode_error(response.body)
       when Net::HTTPNotFound
