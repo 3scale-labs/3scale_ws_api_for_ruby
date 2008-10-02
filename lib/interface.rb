@@ -1,33 +1,19 @@
-require 'net/http'
 require 'cgi'
+require 'hpricot'
+require 'net/http'
 
 # TODO: write very good documentation for this.
 
 module ThreeScale
   class Error < StandardError; end
   class InvalidRequest < Error; end
-
-  #  # Contract instance was not found.
-  #  class ContractInstanceNotFound < Error; end
-  #
-  #  # Authorization failed: user_key or provider_key or both are invalid.
-  #  class AuthorizationFailed < Error; end
-  #
-  #  # Limit specified by contract was exceeded.
-  #  class LimitExceeded < Error; end
-  #
-  #  # Some unpredicted error occured.
-  #  class UnknownError < Error; end
+  class TransactionNotFound < Error; end
+  class UnknownError < Error; end
 
   # This class provides interface to 3scale backend server.
   #
   # 
   class Interface
-    #    STATUSES_TO_ERRORS = Hash.new(UnknownError).merge(
-    #      Net::HTTPNotFound => ContractInstanceNotFound,
-    #      Net::HTTPForbidden => AuthorizationFailed,
-    #      Net::HTTPPreconditionFailed => LimitExceeded
-    #    )
 
     # Hostname of 3scale server.
     attr_accessor :host
@@ -80,16 +66,44 @@ module ThreeScale
         'user_key' => user_key,
         'provider_key' => provider_private_key
       }
-      params.merge!(self.class.encode_params(reports, 'values'))
+      params.merge!(encode_params(reports, 'values'))
 
       response = Net::HTTP.post_form(uri, params)
 
-      raise InvalidRequest if response.is_a?(Net::HTTPForbidden)
+      case response
+      when Net::HTTPCreated
+        element = Hpricot.parse(response.body).at('transaction')
+        [:id, :provider_public_key, :contract_name].inject({}) do |memo, key|
+          memo[key] = element.at(key).inner_text if element.at(key)
+          memo
+        end
+      when Net::HTTPForbidden, Net::HTTPBadRequest
+        raise InvalidRequest, decode_error(response.body)
+      else
+        raise UnknownError, response.body
+      end
     end
 
     # Confirm previously started transaction.
     def confirm(transaction_id, reports = {})
+      uri = URI.parse("#{host}/transactions/#{transaction_id}/confirm.xml")
+      params = {
+        'provider_key' => provider_private_key
+      }
+      params.merge!(encode_params(reports, 'values'))
 
+      response = Net::HTTP.post_form(uri, params)
+
+      case response
+      when Net::HTTPOK
+        true
+      when Net::HTTPBadRequest, Net::HTTPForbidden
+        raise InvalidRequest, decode_error(response.body)
+      when Net::HTTPNotFound
+        raise TransactionNotFound, decode_error(response.body)
+      else
+        raise UnknownError
+      end
     end
 
     # Cancel previously started transaction.
@@ -100,11 +114,16 @@ module ThreeScale
     private
 
     # Encode hash into form suitable for sending it as params of HTTP request.
-    def self.encode_params(params, prefix)
+    def encode_params(params, prefix)
       params.inject({}) do |memo, (key, value)|
         memo["#{prefix}[#{CGI.escape(key)}]"] = CGI.escape(value.to_s)
         memo
       end
+    end
+
+    def decode_error(string)
+      element = Hpricot.parse(string).at('errors error')
+      element && element.inner_text
     end
 
 
