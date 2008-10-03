@@ -25,7 +25,7 @@ module ThreeScale
     # == Arguments
     # * +host+::                 Hostname of 3scale backend server.
     # * +provider_private_key+:: Unique key that identifies this provider.
-    def initialize(host, provider_private_key)
+    def initialize(host = nil, provider_private_key = nil)
       @host = host
       @provider_private_key = provider_private_key
     end

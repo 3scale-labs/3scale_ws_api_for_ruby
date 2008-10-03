@@ -1,1 +1,1 @@
-require "#{File.dirname(__FILE__)}/lib/interface"
+require "#{File.dirname(__FILE__)}/lib/3scale/interface"

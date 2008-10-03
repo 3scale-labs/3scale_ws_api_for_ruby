@@ -3,7 +3,7 @@ require 'activesupport'
 require 'fake_web'
 require 'test/unit'
 
-require "#{File.dirname(__FILE__)}/../lib/interface"
+require "#{File.dirname(__FILE__)}/../lib/3scale/interface"
 
 class InterfaceTest < Test::Unit::TestCase
   def setup
