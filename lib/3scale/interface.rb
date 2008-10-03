@@ -11,6 +11,7 @@ module ThreeScale
   # This class provides interface to 3scale backend server.
   #
   # 
+  # 
   class Interface
 
     # Hostname of 3scale server.
@@ -37,10 +38,10 @@ module ThreeScale
     #
     # == Arguments
     # * +user_key+:: Key that uniquely identifies an user of the service.
-    # * +reports+::  A hash of that contains metric names and to them
-    #                associated amounts of resources spend. For example, if this
+    # * +usage+::    A hash of that contains metric names and to them
+    #                associated amounts of resources used. For example, if this
     #                request is going to take 10MB of storage space, then this
-    #                parameter could contain {'storage' => 10}. The values can
+    #                parameter could contain {'storage' => 10}. The values may
     #                be only approximate or they can be missing altogether. In
     #                these cases, the real values should be reported using
     #                method +confirm+.
@@ -58,13 +59,13 @@ module ThreeScale
     #                           if that is desirable.
     #
     # == Exceptions
-    def start(user_key, reports = {})
+    def start(user_key, usage = {})
       uri = URI.parse("#{host}/transactions.xml")
       params = {
         'user_key' => user_key,
         'provider_key' => provider_private_key
       }
-      params.merge!(encode_params(reports, 'values'))
+      params.merge!(encode_params(usage, 'values'))
       response = Net::HTTP.post_form(uri, params)
 
       # Accept also 200 OK, although 201 Created should be returned.
@@ -82,12 +83,12 @@ module ThreeScale
     # Confirm previously started transaction.
     #
     #
-    def confirm(transaction_id, reports = {})
+    def confirm(transaction_id, usage = {})
       uri = URI.parse("#{host}/transactions/#{CGI.escape(transaction_id.to_s)}/confirm.xml")
       params = {
         'provider_key' => provider_private_key
       }
-      params.merge!(encode_params(reports, 'values'))
+      params.merge!(encode_params(usage, 'usage'))
 
       handle_response(Net::HTTP.post_form(uri, params))
     end
