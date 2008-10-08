@@ -10,8 +10,49 @@ module ThreeScale
 
   # This class provides interface to 3scale backend server.
   #
-  # 
-  # 
+  # == Basic usage instructions
+  #
+  # First, create new interface object with 3scale backed hostname and Your
+  # private provider key:
+  #
+  #    interface = ThreeScale::Interface.new("http://3scale.net", "a3b034...")
+  #
+  # Then for each request to Your service:
+  #
+  # 1. Start the transaction with user key and (optionaly) predicted resource
+  # usage (in this example it is: 1 hit and 42000 kilobytes of storage space),
+  #
+  #     transaction = interface.start(user_key, 'hits' => 1, 'storage' => 42000)
+  #
+  # This will return transaction data (if succesful). It is a hash containing
+  # these fields:
+  #
+  #  +:id+: transaction id necessary for confirmation of cancelation of
+  #  transaction (see following steps).
+  #
+  #  +:provider_public_key+: key You should send back to user so he/she can
+  #  verify the authenticity of the response.
+  #
+  #  +:contract_name+: name of contract the user is signed for. This can be used
+  #  to send different response according to contract type, if that is desired.
+  #
+  # 2. Process the request.
+  #
+  # 3a. If the processing was succesful:
+  # Call +confirm+:
+  #
+  #     interface.confirm(transaction[:id])
+  #
+  # Or call it with actual resource usage, if it differs from predicted one:
+  #
+  #     interface.confirm(transaction[:id], 'hits' => 1, 'storage' => 40500)
+  #
+  # 3b. If there was some error, call +cancel+:
+  #
+  #     interface.cancel(transaction_id)
+  #
+  # 4. Send response back to the user with transaction[:provider_public_key]
+  # embeded.
   class Interface
 
     # Hostname of 3scale server.
@@ -82,7 +123,7 @@ module ThreeScale
 
     # Confirm previously started transaction.
     #
-    #
+    # TODO: documentation.
     def confirm(transaction_id, usage = {})
       uri = URI.parse("#{host}/transactions/#{CGI.escape(transaction_id.to_s)}/confirm.xml")
       params = {
@@ -95,7 +136,7 @@ module ThreeScale
 
     # Cancel previously started transaction.
     #
-    #
+    # # TODO: documentation.
     def cancel(transaction_id)
       uri = URI.parse("#{host}/transactions/#{CGI.escape(transaction_id.to_s)}.xml" +
           "?provider_key=#{CGI.escape(provider_private_key)}")
