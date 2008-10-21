@@ -31,7 +31,7 @@ spec = Gem::Specification.new do |s|
 
   s.add_dependency 'hpricot', '>= 0.6.161'
   
-  s.files = FileList['lib/**/*.rb', 'test/**/*.rb', 'init.rb']
+  s.files = FileList['lib/**/*.rb', 'test/**/*.rb', 'init.rb', 'Rakefile']
   s.test_files = FileList['test/**/*_test.rb']
 
   s.has_rdoc = true
