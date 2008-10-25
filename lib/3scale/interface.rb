@@ -4,10 +4,39 @@ require 'net/http'
 
 module ThreeScale
   class Error < StandardError; end
-  class InvalidRequest < Error; end
-  class TransactionNotFound < Error; end
-  class UnknownError < Error; end
 
+  # Base class for errors caused by user.
+  class UserError < Error; end
+
+  # Error raised when user's contract instance is not active.
+  class ContractNotActive < UserError; end
+
+  # Error raised when usage limits specified by user's contract are exceeded.
+  class LimitsExceeded < UserError; end
+
+  # Error raised when user_id is invalid.
+  class UserKeyInvalid < UserError; end
+
+  
+  # Base class for errors caused by provider.
+  class ProviderError < Error; end
+
+  # Error raised when some metric names are invalid.
+  class MetricInvalid < ProviderError; end
+
+  # Error raised when provider authentication key is invalid.
+  class ProviderKeyInvalid < ProviderError; end
+
+  # Error raised when transaction id does not correspond to existing transaction.
+  class TransactionNotFound < ProviderError; end
+
+
+  # Base class for errors caused by 3scale backend system.
+  class SystemError < Error; end
+  class UnknownError < SystemError; end
+
+
+  
   # This class provides interface to 3scale backend server.
   #
   # == Basic usage instructions
@@ -89,17 +118,19 @@ module ThreeScale
     #
     # == Return values
     # A hash containing there keys:
-    # * +id+::                  Transaction id. This is required for
-    #                           confirmation/cancellation of the transaction
-    #                           later.
-    # * +provider_public_key+:: This key should be sent back to the user so
-    #                           he/she can use it to authenticate the service.
-    # * +contract_name+::       This is name of the contract the user is singed
-    #                           for. This information can be used to serve
-    #                           different responses according to contract types,
-    #                           if that is desirable.
+    # * +id+:: Transaction id. This is required for confirmation/cancellation
+    #          of the transaction later.
+    # * +provider_verification_key+:: This key should be sent back to the user
+    #                                 so he/she can use it to verify the
+    #                                 authenticity of the provider.
+    # * +contract_name+:: This is name of the contract the user is singed for.
+    #                     This information can be used to serve different
+    #                     responses according to contract types,
+    #                     if that is desirable.
     #
     # == Exceptions
+    #
+    #
     def start(user_key, usage = {})
       uri = URI.parse("#{host}/transactions.xml")
       params = {
@@ -109,15 +140,14 @@ module ThreeScale
       params.merge!(encode_params(usage, 'values'))
       response = Net::HTTP.post_form(uri, params)
 
-      # Accept also 200 OK, although 201 Created should be returned.
-      if response.is_a?(Net::HTTPCreated) || response.is_a?(Net::HTTPOK)
-        element = Hpricot.parse(response.body).at('transaction')
-        [:id, :provider_public_key, :contract_name].inject({}) do |memo, key|
+      if response.is_a?(Net::HTTPSuccess)
+        element = Hpricot::XML(response.body).at('transaction')
+        [:id, :provider_verification_key, :contract_name].inject({}) do |memo, key|
           memo[key] = element.at(key).inner_text if element.at(key)
           memo
         end
       else
-        handle_response(response)
+        handle_error(response.body)
       end
     end
 
@@ -131,7 +161,8 @@ module ThreeScale
       }
       params.merge!(encode_params(usage, 'usage'))
 
-      handle_response(Net::HTTP.post_form(uri, params))
+      response = Net::HTTP.post_form(uri, params)
+      response.is_a?(Net::HTTPSuccess) ? true : handle_error(response.body)
     end
 
     # Cancel previously started transaction.
@@ -145,7 +176,7 @@ module ThreeScale
         http.delete("#{uri.path}?#{uri.query}")
       end
 
-      handle_response(response)
+      response.is_a?(Net::HTTPSuccess) ? true : handle_error(response.body)
     end
 
     private
@@ -158,22 +189,19 @@ module ThreeScale
       end
     end
 
-    def decode_error(string)
-      element = Hpricot.parse(string).at('errors error')
-      element && element.inner_text
-    end
+    CODES_TO_EXCEPTIONS = {
+      'user.exceeded_limits' => LimitsExceeded,
+      'user.invalid_key' => UserKeyInvalid,
+      'user.inactive_contract' => ContractNotActive,
+      'provider.invalid_key' => ProviderKeyInvalid,
+      'provider.invalid_metric' => MetricInvalid,
+      'provider.invalid_transaction_id' => TransactionNotFound
+    }
 
-    def handle_response(response)
-      case response
-      when Net::HTTPOK
-        true
-      when Net::HTTPForbidden, Net::HTTPBadRequest
-        raise InvalidRequest, decode_error(response.body)
-      when Net::HTTPNotFound
-        raise TransactionNotFound, decode_error(response.body)
-      else
-        raise UnknownError, response.body
-      end
+    def handle_error(response)
+      element = Hpricot::XML(response).at('error')
+      raise UnknownError unless element
+      raise CODES_TO_EXCEPTIONS[element[:id]] || UnknownError, element.inner_text
     end
   end
 end
