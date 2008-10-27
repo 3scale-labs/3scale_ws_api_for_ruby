@@ -59,8 +59,8 @@ module ThreeScale
   #  +:id+: transaction id necessary for confirmation of cancelation of
   #  transaction (see following steps).
   #
-  #  +:provider_public_key+: key You should send back to user so he/she can
-  #  verify the authenticity of the response.
+  #  +:provider_verification_key+: key You should send back to user so he/she
+  #  can verify the authenticity of the response.
   #
   #  +:contract_name+: name of contract the user is signed for. This can be used
   #  to send different response according to contract type, if that is desired.
@@ -134,7 +134,7 @@ module ThreeScale
     def start(user_key, usage = {})
       uri = URI.parse("#{host}/transactions.xml")
       params = {
-        'user_key' => user_key,
+        'user_key' => prepare_key(user_key),
         'provider_key' => provider_private_key
       }
       params.merge!(encode_params(usage, 'values'))
@@ -179,6 +179,14 @@ module ThreeScale
       response.is_a?(Net::HTTPSuccess) ? true : handle_error(response.body)
     end
 
+    KEY_PREFIX = '3scale-'
+
+    # Check if key is for 3scale backend system.
+    def system_key?(key)
+      # Key should start with prefix
+      key.index(KEY_PREFIX) == 0
+    end
+
     private
 
     # Encode hash into form suitable for sending it as params of HTTP request.
@@ -187,6 +195,10 @@ module ThreeScale
         memo["#{prefix}[#{CGI.escape(key)}]"] = CGI.escape(value.to_s)
         memo
       end
+    end
+
+    def prepare_key(key)
+      system_key?(key) ? key[KEY_PREFIX.length..-1] : key
     end
 
     CODES_TO_EXCEPTIONS = {

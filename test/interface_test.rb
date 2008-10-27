@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'activesupport'
 require 'fake_web'
+require 'mocha'
 require 'test/unit'
 
 require "#{File.dirname(__FILE__)}/../lib/3scale/interface"
@@ -148,9 +149,35 @@ class InterfaceTest < Test::Unit::TestCase
     end
   end
 
+  def test_should_identify_3scale_keys
+    assert  @interface.system_key?('3scale-foo')
+    assert !@interface.system_key?('foo')
+  end
+
+  def test_start_should_strip_3scale_prefix_from_user_key_before_sending
+    Net::HTTP.expects(:post_form).with(anything,
+      has_entries('user_key' => 'foo')).returns(stub_response)
+    
+    @interface.start('3scale-foo')
+  end
+
+  def test_start_should_leave_user_key_unchanges_if_it_does_not_contain_3scale_prefix
+    Net::HTTP.expects(:post_form).with(anything,
+      has_entries('user_key' => 'foo')).returns(stub_response)
+
+    @interface.start('foo')
+  end
+
   private
 
   def stub_error(id)
     "<error id=\"#{id}\">blah blah</error>"
+  end
+
+  def stub_response
+    response = stub
+    response.stubs(:is_a?).with(Net::HTTPSuccess).returns(true)
+    response.stubs(:body).returns('<transaction></transaction>')
+    response
   end
 end
