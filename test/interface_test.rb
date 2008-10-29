@@ -31,6 +31,14 @@ class InterfaceTest < Test::Unit::TestCase
     end
   end
 
+  def test_start_should_send_usage_data
+    Net::HTTP.expects(:post_form).
+      with(anything, has_entries('usage[hits]' => '1')).
+      returns(stub_response)
+
+    @interface.start('valid_key', 'hits' => 1)
+  end
+
   def test_start_should_return_transaction_data_on_success
     FakeWeb.register_uri('http://3scale.net/transactions.xml',
       :status => ['201', 'Created'],
@@ -110,6 +118,14 @@ class InterfaceTest < Test::Unit::TestCase
 
     result = @interface.confirm(42, 'clicks' => 1)
     assert_equal true, result
+  end
+
+  def test_confirm_should_send_usage_data
+    Net::HTTP.expects(:post_form).
+      with(anything, has_entries('usage[hits]' => '1')).
+      returns(stub_response)
+
+    @interface.confirm(42, 'hits' => 1)
   end
 
   def test_cancel_should_raise_exception_on_invalid_transaction

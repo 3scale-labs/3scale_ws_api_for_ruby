@@ -137,7 +137,7 @@ module ThreeScale
         'user_key' => prepare_key(user_key),
         'provider_key' => provider_private_key
       }
-      params.merge!(encode_params(usage, 'values'))
+      params.merge!(encode_params(usage, 'usage'))
       response = Net::HTTP.post_form(uri, params)
 
       if response.is_a?(Net::HTTPSuccess)
