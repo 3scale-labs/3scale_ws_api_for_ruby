@@ -103,7 +103,7 @@ module ThreeScale
 
 
     # Start a transaction (service request). This can be used also to send
-    # prediction of how much resouces will be spend by this request to 3scale
+    # prediction of how much resources will be spend by this request to 3scale
     # backend server.
     #
     # == Arguments
