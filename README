@@ -2,7 +2,18 @@
 
 This plugin provides interface for communication with 3scale monitoring system.
 
-== Basic usage instructions
+== Configuration
+
+If you are using rails 2.1 or newer, put this into your config/environment.rb
+file:
+
+  config.gem "3scale_interface"
+
+If you are using older version, put there this instead:
+
+  require "3scale_interface"
+
+== Usage
 
 First, create new interface object with 3scale backed hostname and Your
 private provider key:
