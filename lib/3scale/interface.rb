@@ -60,16 +60,16 @@ module ThreeScale # :nodoc:
 
     # Key that uniquely identifies the provider. This key is known only to the
     # provider and to 3scale.
-    attr_accessor :provider_private_key
+    attr_accessor :provider_authentication_key
 
     # Create a 3scale interface object.
     #
     # == Arguments
     # +host+:: Hostname of 3scale backend server.
-    # +provider_private_key+:: Unique key that identifies this provider.
-    def initialize(host = nil, provider_private_key = nil)
+    # +provider_authentication_key+:: Unique key that identifies this provider.
+    def initialize(host = nil, provider_authentication_key = nil)
       @host = host
-      @provider_private_key = provider_private_key
+      @provider_authentication_key = provider_authentication_key
     end
 
 
@@ -103,7 +103,7 @@ module ThreeScale # :nodoc:
     # == Exceptions
     #
     # ThreeScale::UserKeyInvalid:: +user_key+ is not valid
-    # ThreeScale::ProviderKeyInvalid:: +provider_private_key+ is not valid
+    # ThreeScale::ProviderKeyInvalid:: +provider_authentication_key+ is not valid
     # ThreeScale::MetricInvalid:: +usage+ contains invalid metrics
     # ThreeScale::ContractNotActive:: contract is not active
     # ThreeScale::LimitsExceeded:: usage limits are exceeded
@@ -113,7 +113,7 @@ module ThreeScale # :nodoc:
       uri = URI.parse("#{host}/transactions.xml")
       params = {
         'user_key' => prepare_key(user_key),
-        'provider_key' => provider_private_key
+        'provider_key' => provider_authentication_key
       }
       params.merge!(encode_params(usage, 'usage'))
       response = Net::HTTP.post_form(uri, params)
@@ -148,14 +148,14 @@ module ThreeScale # :nodoc:
     # == Exceptions
     #
     # ThreeScale::TransactionNotFound:: transactions does not exits
-    # ThreeScale::ProviderKeyInvalid:: +provider_private_key+ is not valid
+    # ThreeScale::ProviderKeyInvalid:: +provider_authentication_key+ is not valid
     # ThreeScale::MetricInvalid:: +usage+ contains invalid metrics
     # ThreeScale::UnknownError:: some other unexpected error
     #
     def confirm(transaction_id, usage = {})
       uri = URI.parse("#{host}/transactions/#{CGI.escape(transaction_id.to_s)}/confirm.xml")
       params = {
-        'provider_key' => provider_private_key
+        'provider_key' => provider_authentication_key
       }
       params.merge!(encode_params(usage, 'usage'))
 
@@ -181,12 +181,12 @@ module ThreeScale # :nodoc:
     # == Exceptions
     #
     # ThreeScale::TransactionNotFound:: transactions does not exits
-    # ThreeScale::ProviderKeyInvalid:: +provider_private_key+ is not valid
+    # ThreeScale::ProviderKeyInvalid:: +provider_authentication_key+ is not valid
     # ThreeScale::UnknownError:: some other unexpected error
     #
     def cancel(transaction_id)
       uri = URI.parse("#{host}/transactions/#{CGI.escape(transaction_id.to_s)}.xml" +
-          "?provider_key=#{CGI.escape(provider_private_key)}")
+          "?provider_key=#{CGI.escape(provider_authentication_key)}")
 
       response = Net::HTTP.start(uri.host, uri.port) do |http|
         http.delete("#{uri.path}?#{uri.query}")

@@ -16,7 +16,7 @@ If you are using older version, put there this instead:
 == Usage
 
 First, create new interface object with 3scale backed hostname and Your
-private provider key:
+private authentication key:
 
   interface = ThreeScale::Interface.new("http://3scale.net", "a3b034...")
 
@@ -57,7 +57,7 @@ Or call it with actual resource usage, if it differs from predicted one:
 
 2b. If there was some error, call +cancel+:
 
-  interface.cancel(transaction_id)
+  interface.cancel(transaction[:id])
 
 3. Send response back to the user together with +provider_verification_key+.
 
