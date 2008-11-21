@@ -8,10 +8,16 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'hpricot', '>= 0.6.161'
   
-  s.files = Dir['lib/**/*.rb'] + Dir['test/**/*.rb'] + ['init.rb', 'Rakefile']
-  s.test_files = Dir['test/**/*_test.rb']
+  s.files = [
+    'init.rb',
+    'lib/3scale/interface.rb',
+    'lib/3scale_interface.rb',
+    'README',
+    'Rakefile',
+    'test/interface_test.rb']
+
+  s.test_files = ['test/interface_test.rb']
 
   s.has_rdoc = true
   s.extra_rdoc_files = ['README']
 end
-

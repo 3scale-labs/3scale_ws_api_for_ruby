@@ -22,9 +22,7 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
-spec_path = File.dirname(__FILE__) + '/3scale_ws_api_for_ruby.gemspec'
-spec_source = File.open(spec_path) { |file| file.read }
-spec = eval(spec_source)
+spec = eval(File.read(File.dirname(__FILE__) + '/3scale_ws_api_for_ruby.gemspec'))
 
 Rake::GemPackageTask.new(spec) do |package|
     package.need_tar = true
