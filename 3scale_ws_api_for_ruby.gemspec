@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
-  s.name = '3scale_ws_api_for_ruby'
-  s.version = '0.4.7'
+  s.name = '3scale_ws_api'
+  s.version = '0.4.8'
   s.summary = '3scale web service management API for Ruby.'
   s.authors = ['Adam Cigánek', 'Josep M. Pujol']
   s.email = 'adam@3scale.net'
