@@ -22,21 +22,9 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
-spec = Gem::Specification.new do |s|
-  s.name = '3scale_interface'
-  s.version = '0.4.6'
-  s.summary = '3scale contract management API for Ruby.'
-  s.authors = ['Josep M. Pujol', 'Adam Ciganek']
-  s.email = 'jmpujol @nospam@ gmail.com'
-
-  s.add_dependency 'hpricot', '>= 0.6.161'
-  
-  s.files = FileList['lib/**/*.rb', 'test/**/*.rb', 'init.rb', 'Rakefile']
-  s.test_files = FileList['test/**/*_test.rb']
-
-  s.has_rdoc = true
-  s.extra_rdoc_files = ['README']
-end
+spec_path = File.dirname(__FILE__) + '/3scale_ws_api_for_ruby.gemspec'
+spec_source = File.open(spec_path) { |file| file.read }
+spec = eval(spec_source)
 
 Rake::GemPackageTask.new(spec) do |package|
     package.need_tar = true
