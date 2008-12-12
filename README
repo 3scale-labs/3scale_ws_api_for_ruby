@@ -61,3 +61,7 @@ Or call it with actual resource usage, if it differs from predicted one:
 
 3. Send response back to the user together with +provider_verification_key+.
 
+== Legal:
+
+Copyright (c) 2008 3scale networks S.L., released under the MIT license.
+
