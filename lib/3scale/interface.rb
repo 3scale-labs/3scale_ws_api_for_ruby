@@ -112,7 +112,7 @@ module ThreeScale # :nodoc:
     def start(user_key, usage = {})
       uri = URI.parse("#{host}/transactions.xml")
       params = {
-        'user_key' => prepare_key(user_key),
+        'user_key' => user_key,
         'provider_key' => provider_authentication_key
       }
       params.merge!(encode_params(usage, 'usage'))
@@ -213,10 +213,6 @@ module ThreeScale # :nodoc:
         memo["#{prefix}[#{CGI.escape(key)}]"] = CGI.escape(value.to_s)
         memo
       end
-    end
-
-    def prepare_key(key)
-      system_key?(key) ? key[KEY_PREFIX.length..-1] : key
     end
 
     CODES_TO_EXCEPTIONS = {

@@ -18,7 +18,9 @@ If you are using older version, put there this instead:
 First, create new interface object with 3scale backed hostname and Your
 private authentication key:
 
-  interface = ThreeScale::Interface.new("http://3scale.net", "a3b034...")
+  interface = ThreeScale::Interface.new(backend_host, provider_key)
+
+You can find the backend hostname on http://www.3scale.net/support/api.
 
 Because the object is stateless, you can create just one and store it globally.
 

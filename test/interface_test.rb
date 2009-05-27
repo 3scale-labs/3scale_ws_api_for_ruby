@@ -92,20 +92,6 @@ class InterfaceTest < Test::Unit::TestCase
     assert_equal 'ultimate', result[:contract_name]
   end
 
-  def test_start_should_strip_3scale_prefix_from_user_key_before_sending
-    Net::HTTP.expects(:post_form).with(anything,
-      has_entries('user_key' => 'foo')).returns(stub_response)
-
-    @interface.start('3scale-foo')
-  end
-
-  def test_start_should_leave_user_key_unchanged_if_it_does_not_contain_3scale_prefix
-    Net::HTTP.expects(:post_form).with(anything,
-      has_entries('user_key' => 'foo')).returns(stub_response)
-
-    @interface.start('foo')
-  end
-
   def test_confirm_should_raise_exception_on_invalid_transaction
     FakeWeb.register_uri('http://3scale.net/transactions/42/confirm.xml',
       :status => ['404', 'Not Found'],
