@@ -1,20 +1,25 @@
 require 'rubygems'
 require 'activesupport'
+
+gem 'fakeweb', '>=1.2.4'
 require 'fake_web'
+
+gem 'mocha', '0.9.5'
 require 'mocha'
+
 require 'test/unit'
 
 require "#{File.dirname(__FILE__)}/../lib/3scale/interface"
 
 class InterfaceTest < Test::Unit::TestCase
   def setup
-    @interface = ThreeScale::Interface.new('http://3scale.net', 'some_key')
+    @interface = ThreeScale::Interface.new('http://server.3scale.net', 'some_key')
   end
 
   def test_start_should_raise_exception_on_invalid_user_key
-    FakeWeb.register_uri('http://3scale.net/transactions.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions.xml',
       :status => ['403', 'Forbidden'],
-      :string => stub_error('user.invalid_key'))
+      :body => stub_error('user.invalid_key'))
 
     assert_raise ThreeScale::UserKeyInvalid do
       @interface.start('invalid_key')
@@ -22,9 +27,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_start_should_raise_exception_on_invalid_provider_key
-    FakeWeb.register_uri('http://3scale.net/transactions.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions.xml',
       :status => ['403', 'Forbidden'],
-      :string => stub_error('provider.invalid_key'))
+      :body => stub_error('provider.invalid_key'))
 
     assert_raise ThreeScale::ProviderKeyInvalid do
       @interface.start('valid_key')
@@ -32,9 +37,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_start_should_raise_exception_on_inactive_contract
-    FakeWeb.register_uri('http://3scale.net/transactions.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions.xml',
       :status => ['403', 'Forbidden'],
-      :string => stub_error('user.inactive_contract'))
+      :body => stub_error('user.inactive_contract'))
 
     assert_raise ThreeScale::ContractNotActive do
       @interface.start('valid_key', 'clicks' => 1)
@@ -42,9 +47,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_start_should_raise_exception_on_invalid_metric
-    FakeWeb.register_uri('http://3scale.net/transactions.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions.xml',
       :status => ['400', 'Bad Request'],
-      :string => stub_error('provider.invalid_metric'))
+      :body => stub_error('provider.invalid_metric'))
 
     assert_raise ThreeScale::MetricInvalid do
       @interface.start('valid_key', 'clicks' => 1)
@@ -52,9 +57,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_start_should_raise_exception_on_exceeded_limits
-    FakeWeb.register_uri('http://3scale.net/transactions.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions.xml',
       :status => ['403', 'Forbidden'],
-      :string => stub_error('user.exceeded_limits'))
+      :body => stub_error('user.exceeded_limits'))
 
     assert_raise ThreeScale::LimitsExceeded do
       @interface.start('valid_key', 'clicks' => 1)
@@ -62,7 +67,7 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_start_should_raise_exception_on_unexpected_error
-    FakeWeb.register_uri('http://3scale.net/transactions.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions.xml',
       :status => ['500', 'Internal Server Error'])
 
     assert_raise ThreeScale::UnknownError do
@@ -79,9 +84,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_start_should_return_transaction_data_on_success
-    FakeWeb.register_uri('http://3scale.net/transactions.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions.xml',
       :status => ['200', 'OK'],
-      :string => {:id => '42', :provider_verification_key => 'some_key',
+      :body => {:id => '42', :provider_verification_key => 'some_key',
         :contract_name => 'ultimate'}.to_xml(:root => 'transaction',
         :dasherize => false))
 
@@ -93,9 +98,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_confirm_should_raise_exception_on_invalid_transaction
-    FakeWeb.register_uri('http://3scale.net/transactions/42/confirm.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions/42/confirm.xml',
       :status => ['404', 'Not Found'],
-      :string => stub_error('provider.invalid_transaction_id'))
+      :body => stub_error('provider.invalid_transaction_id'))
 
     assert_raise ThreeScale::TransactionNotFound do
       @interface.confirm(42)
@@ -103,9 +108,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
   
   def test_confirm_should_raise_exception_on_invalid_provider_key
-    FakeWeb.register_uri('http://3scale.net/transactions/42/confirm.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions/42/confirm.xml',
       :status => ['403', 'Forbidden'],
-      :string => stub_error('provider.invalid_key'))
+      :body => stub_error('provider.invalid_key'))
 
     assert_raise ThreeScale::ProviderKeyInvalid do
       @interface.confirm(42)
@@ -113,9 +118,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_confirm_should_raise_exception_on_invalid_metric
-    FakeWeb.register_uri('http://3scale.net/transactions/42/confirm.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions/42/confirm.xml',
       :status => ['400', 'Bad Request'],
-      :string => stub_error('provider.invalid_metric'))
+      :body => stub_error('provider.invalid_metric'))
 
     assert_raise ThreeScale::MetricInvalid do
       @interface.confirm(42, 'clicks' => 1)
@@ -123,7 +128,7 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_confirm_should_raise_exception_on_unexpected_error
-    FakeWeb.register_uri('http://3scale.net/transactions/42/confirm.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions/42/confirm.xml',
       :status => ['500', 'Internal Server Error'])
 
     assert_raise ThreeScale::UnknownError do
@@ -132,7 +137,7 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_confirm_should_return_true_on_success
-    FakeWeb.register_uri('http://3scale.net/transactions/42/confirm.xml',
+    FakeWeb.register_uri(:post, 'http://server.3scale.net/transactions/42/confirm.xml',
       :status => ['200', 'OK'])
 
     result = @interface.confirm(42, 'clicks' => 1)
@@ -148,9 +153,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_cancel_should_raise_exception_on_invalid_transaction
-    FakeWeb.register_uri('http://3scale.net/transactions/42.xml?provider_key=some_key',
+    FakeWeb.register_uri(:delete, 'http://server.3scale.net/transactions/42.xml?provider_key=some_key',
       :status => ['404', 'Not Found'],
-      :string => stub_error('provider.invalid_transaction_id'))
+      :body => stub_error('provider.invalid_transaction_id'))
 
     assert_raise ThreeScale::TransactionNotFound do
       @interface.cancel(42)
@@ -158,9 +163,9 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_cancel_should_raise_exception_on_invalid_provider_key
-    FakeWeb.register_uri('http://3scale.net/transactions/42.xml?provider_key=some_key',
+    FakeWeb.register_uri(:delete, 'http://server.3scale.net/transactions/42.xml?provider_key=some_key',
       :status => ['403', 'Forbidden'],
-      :string => stub_error('provider.invalid_key'))
+      :body => stub_error('provider.invalid_key'))
 
     assert_raise ThreeScale::ProviderKeyInvalid do
       @interface.cancel(42)
@@ -168,7 +173,7 @@ class InterfaceTest < Test::Unit::TestCase
   end
 
   def test_cancel_should_raise_exception_on_unexpected_error
-    FakeWeb.register_uri('http://3scale.net/transactions/42.xml?provider_key=some_key',
+    FakeWeb.register_uri(:delete, 'http://server.3scale.net/transactions/42.xml?provider_key=some_key',
       :status => ['500', 'Internal Server Error'])
 
     assert_raise ThreeScale::UnknownError do
@@ -177,7 +182,7 @@ class InterfaceTest < Test::Unit::TestCase
   end
   
   def test_cancel_should_return_true_on_success
-    FakeWeb.register_uri('http://3scale.net/transactions/42.xml?provider_key=some_key',
+    FakeWeb.register_uri(:delete, 'http://server.3scale.net/transactions/42.xml?provider_key=some_key',
       :status => ['200', 'OK'])
 
     result = @interface.cancel(42)
