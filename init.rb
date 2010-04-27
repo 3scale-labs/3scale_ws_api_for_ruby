@@ -1,1 +1,0 @@
-require "#{File.dirname(__FILE__)}/lib/3scale_interface"
