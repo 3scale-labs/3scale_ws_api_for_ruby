@@ -1,6 +1,9 @@
 require 'cgi'
 require 'nokogiri'
 
+require 'three_scale/response'
+require 'three_scale/authorize_response'
+
 module ThreeScale
   Error = Class.new(RuntimeError)
     
@@ -28,21 +31,6 @@ module ThreeScale
   #   end
   #
   class Client
-    class Response
-      def initialize(options)
-        @success = options[:success]
-        @errors  = options[:errors] || []
-      end
-
-      def success?
-        @success
-      end
-      
-      attr_reader :errors
-    
-      Error = Struct.new(:code, :message)
-    end
-
     DEFAULT_HOST = 'server.3scale.net'
 
     def initialize(options)
@@ -74,22 +62,45 @@ module ThreeScale
       raise ArgumentError, 'no transactions to report' if transactions.empty?
 
       payload = encode_transactions(transactions)
-      payload['provider_key'] = provider_key
+      payload['provider_key'] = CGI.escape(provider_key)
 
       uri = URI.parse("http://#{host}/transactions.xml")
-      http_response = Net::HTTP.post_form(uri, payload)
 
+      process_response(Net::HTTP.post_form(uri, payload)) do |http_response|
+        Response.new(:success => true)
+      end
+    end
+
+    # Authorize a user.
+    #
+    # == Examples
+    #
+    #   client.authorize(:user_key => 'foo')
+    #
+    def authorize(options)
+      path = "/transactions/authorize.xml" +
+        "?provider_key=#{CGI.escape(provider_key)}" +
+        "&user_key=#{CGI.escape(options[:user_key].to_s)}"
+
+      uri = URI.parse("http://#{host}#{path}")
+
+      process_response(Net::HTTP.get_response(uri)) do |http_response|
+        build_authorize_response(http_response.body)
+      end
+    end
+
+    private
+
+    def process_response(http_response)
       case http_response
       when Net::HTTPSuccess
-        Response.new(:success => true)
+        yield(http_response)
       when Net::HTTPClientError
         build_error_response(http_response.body)
       else
         raise ServerError.new(http_response)
       end
     end
-
-    private
 
     def encode_transactions(transactions)
       result = {}
@@ -111,15 +122,33 @@ module ThreeScale
       result["transactions[#{index}][#{names.join('][')}]"] = CGI.escape(value.to_s) if value
     end
 
-    def build_error_response(body)
-      errors = []
-
+    def build_authorize_response(body)
+      response = AuthorizeResponse.new
       doc = Nokogiri::XML(body)
-      doc.search('error').each do |node|
-        errors[node['index'].to_i] = Response::Error.new(node['code'], node.content.to_s.strip)
+
+      response.plan = doc.at_css('plan').content.to_s.strip
+
+      doc.css('usage').each do |node|
+        response.add_usage(:metric        => node['metric'].to_s.strip,
+                           :period        => node['period'].to_s.strip.to_sym,
+                           :period_start  => node.at('period_start').content,
+                           :period_end    => node.at('period_end').content,
+                           :current_value => node.at('current_value').content.to_i,
+                           :max_value     => node.at('max_value').content.to_i)
       end
 
-      Response.new(:success => false, :errors => errors)
+      response
+    end
+
+    def build_error_response(body)
+      response = Response.new(:success => false)
+      doc = Nokogiri::XML(body)
+
+      doc.css('error').each do |node|
+        response.add_error(node['index'].to_i, node['code'], node.content.to_s.strip)
+      end
+
+      response
     end
   end
 end
