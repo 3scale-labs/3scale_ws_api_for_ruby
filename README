@@ -1,3 +1,8 @@
+IMPORTANT: For production, use the "v1.0" tag. The master branch contains new version which is not yet complete.
+
+This README is still for the 1.0 version:
+
+
 = Interface for 3scale web service API monitoring system
 
 This plugin provides interface for communication with 3scale monitoring system.
