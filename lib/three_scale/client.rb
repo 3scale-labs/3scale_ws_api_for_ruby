@@ -1,4 +1,6 @@
 require 'cgi'
+require 'uri'
+require 'net/http'
 require 'nokogiri'
 
 require 'three_scale/response'
@@ -145,7 +147,13 @@ module ThreeScale
       doc = Nokogiri::XML(body)
 
       doc.css('error').each do |node|
-        response.add_error(node['index'].to_i, node['code'], node.content.to_s.strip)
+        response.add_error(node['index'].to_i, 
+                           
+                           # Backwards compatibility: error code is sometimes in
+                           # the "id" attribute.
+                           node['code'] || node['id'],
+
+                           node.content.to_s.strip)
       end
 
       response
