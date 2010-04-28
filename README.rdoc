@@ -90,6 +90,21 @@ To report usage, use the +report+ method. You can report multiple transaction at
   response = client.report({:user_key => "first user's key",  :usage => {'hits' => 1}},
                            {:user_key => "second user's key", :usage => {'hits' => 1}})
 
+The :user_key and :usage parameters are required. Additionaly, you can specify a timestamp
+of transaction:
+
+  response = client.report({:user_key => "user's key", :usage => {'hits' => 1},
+                            :timestamp => Time.local(2010, 4, 28, 12, 36)})
+
+The timestamp can be either a Time object (from ruby's standard library) or something that
+"quacks" like it (for example, the ActiveSupport::TimeWithZone from Rails) or a string. The
+string has to be in a format parseable by the Time.parse method. For example:
+
+  "2010-04-28 12:38:33 +0200"
+
+If the timestamp is not in UTC, you have to specify a time offset. That's the "+0200" 
+(two hours ahead of the Universal Coordinate Time) in the example abowe.
+
 Then call the +success?+ method on the returned response object to see if the report was
 successful.
 
@@ -100,9 +115,15 @@ successful.
   end
 
 If the report was successful, you are done. Otherwise, the +errors+ method will return array
-of errors with more detailed information.
+of errors with more detailed information. Each of these errors has the +index+ attribute that
+returns numeric index of the transaction this error corresponds to. For example, if you report
+three transactions, first two are ok and the last one has invalid user key, there will be
+an error in the +errors+ array with the +index+ equal to 2 (the indices start at 0):
 
-
+  error = response.errors[0]
+  error.index   # 2
+  error.code    # "user.invalid_key"
+  error.message # "User key is invalid"
 
 == Legal
 
