@@ -34,6 +34,20 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] && ENV['TEST_3SCALE_USER_KEYS']
       response = @client.report(*transactions)
       assert response.success?
     end
+
+    def test_failed_report
+      transactions = @user_keys.map do |user_key|
+        {:user_key => user_key, :usage => {'hits' => 1}}
+      end
+
+      transactions[0][:user_key] = 'invalid-user-key'
+
+      response = @client.report(*transactions)
+      assert !response.success?
+      assert_equal 1, response.errors.count
+      assert_equal 0, response.errors[0].index
+      assert_equal 'user.invalid_key', response.errors[0].code
+    end
   end
 
 else
