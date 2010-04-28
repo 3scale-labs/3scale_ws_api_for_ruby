@@ -24,12 +24,16 @@ module ThreeScale
   #
   #   client = ThreeScale::Client.new(:provider_key => "your provider key")
   #
-  #   response = client.report(:user_key => "your user's key", :usage => {"hits" => 1})
+  #   response = client.authorize(:user_key => "yout user's key")
   #
   #   if response.success?
-  #     # all fine.
-  #   else
-  #     # something's wrong.
+  #     response = client.report(:user_key => "your user's key", :usage => {"hits" => 1})
+  #
+  #     if response.success?
+  #       # all fine.
+  #     else
+  #       # something's wrong.
+  #     end
   #   end
   #
   class Client
@@ -48,6 +52,32 @@ module ThreeScale
     attr_reader :host
 
     # Report transaction(s).
+    #
+    # == Parameters
+    #
+    # The parameters the transactions to report. Each transaction is a hash with
+    # these elements:
+    #
+    #   user_key::  API key of the user to report the transaction for. This parameter is
+    #               required.
+    #   usage::     Hash of usage values. The keys are metric names and values are
+    #               correspoding numeric values. Example: {'hits' => 1, 'transfer' => 1024}. 
+    #               This parameter is required.
+    #   timestamp:: Timestamp of the transaction. This can be either a object of the
+    #               ruby's Time class, or a string in the "YYYY-MM-DD HH:MM:SS" format
+    #               (if the time is in the UTC), or a string in 
+    #               the "YYYY-MM-DD HH:MM:SS ZZZZZ" format, where the ZZZZZ is the time offset
+    #               from the UTC. For example, "US Pacific Time" has offset -0800, "Tokyo"
+    #               has offset +0900. This parameter is optional, and if not provided, equals
+    #               to the current time.
+    #
+    # == Return
+    #
+    # A Response object with method +success?+ that returns true if the report was successful,
+    # or false if there was an error. See ThreeScale::Response class for more information.
+    #
+    # In case of unexpected internal server error, this method raises a ThreeScale::ServerError
+    # exception.
     #
     # == Examples
     #
@@ -75,9 +105,30 @@ module ThreeScale
 
     # Authorize a user.
     #
+    # == Parameters
+    # 
+    # Hash with options:
+    #
+    #   user_key:: API key of the user to authorize. This is required.
+    #
+    # == Return
+    #
+    # An ThreeScale::AuthorizeResponse object. It's +success?+ method returns true if
+    # the authorization is successful. In that case, it contains additional information
+    # about the status of the use. See the ThreeScale::AuthorizeResponse for more information.
+    # In case of error, the +success?+ method returns false and the +errors+ contains list
+    # of errors with more details.
+    #
+    # In case of unexpected internal server error, this method raises a ThreeScale::ServerError
+    # exception.
+    #
     # == Examples
     #
-    #   client.authorize(:user_key => 'foo')
+    #   response = client.authorize(:user_key => 'foo')
+    #
+    #   if response.success?
+    #     # All good. Proceed...
+    #   end
     #
     def authorize(options)
       path = "/transactions/authorize.xml" +
