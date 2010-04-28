@@ -148,9 +148,11 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert !response.success?
     assert_equal 2, response.errors.size
 
+    assert_equal 0,                         response.errors[0].index
     assert_equal 'user.invalid_key',        response.errors[0].code
     assert_equal 'user key is invalid',     response.errors[0].message
     
+    assert_equal 1,                         response.errors[1].index
     assert_equal 'provider.invalid_metric', response.errors[1].code
     assert_equal 'metric does not exist',   response.errors[1].message
   end

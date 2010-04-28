@@ -9,12 +9,12 @@ module ThreeScale
       @success
     end
   
-    Error = Struct.new(:code, :message)
+    Error = Struct.new(:index, :code, :message)
     
     attr_reader :errors
 
-    def add_error(index, code, message)
-      @errors[index] = Error.new(code, message)
+    def add_error(*args)
+      @errors << Error.new(*args)
     end
   end
 end
