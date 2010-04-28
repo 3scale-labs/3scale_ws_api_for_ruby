@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{3scale_client}
-  s.version = "2.0.0"
+  s.version = "2.0.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Adam Cig\303\241nek"]
@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     ".gitignore",
+     "3scale_client.gemspec",
      "LICENCE",
      "README.rdoc",
      "Rakefile",
@@ -31,7 +32,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://www.3scale.net}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.5}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{Client for 3scale Web Service Management System API}
   s.test_files = [
     "test/remote_test.rb",
