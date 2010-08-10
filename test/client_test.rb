@@ -32,15 +32,15 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
              
               <usage_reports>
                 <usage_report metric="hits" period="day">
-                  <period_start>2010-04-26 00:00:00 +00:00</period_start>
-                  <period_end>2010-04-27 00:00:00 +00:00</period_end>
+                  <period_start>2010-04-26 00:00:00 +0000</period_start>
+                  <period_end>2010-04-27 00:00:00 +0000</period_end>
                   <current_value>10023</current_value>
                   <max_value>50000</max_value>
                 </usage_report>
 
                 <usage_report metric="hits" period="month">
-                  <period_start>2010-04-01 00:00:00 +00:00</period_start>
-                  <period_end>2010-05-01 00:00:00 +00:00</period_end>
+                  <period_start>2010-04-01 00:00:00 +0000</period_start>
+                  <period_end>2010-05-01 00:00:00 +0000</period_end>
                   <current_value>999872</current_value>
                   <max_value>150000</max_value>
                 </usage_report>
@@ -77,15 +77,15 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
              
               <usage_reports>
                 <usage_report metric="hits" period="day" exceeded="true">
-                  <period_start>2010-04-26 00:00:00 +00:00</period_start>
-                  <period_end>2010-04-27 00:00:00 +00:00</period_end>
+                  <period_start>2010-04-26 00:00:00 +0000</period_start>
+                  <period_end>2010-04-27 00:00:00 +0000</period_end>
                   <current_value>50002</current_value>
                   <max_value>50000</max_value>
                 </usage_report>
 
                 <usage_report metric="hits" period="month">
-                  <period_start>2010-04-01 00:00:00 +00:00</period_start>
-                  <period_end>2010-05-01 00:00:00 +00:00</period_end>
+                  <period_start>2010-04-01 00:00:00 +0000</period_start>
+                  <period_end>2010-05-01 00:00:00 +0000</period_end>
                   <current_value>999872</current_value>
                   <max_value>150000</max_value>
                 </usage_report>
