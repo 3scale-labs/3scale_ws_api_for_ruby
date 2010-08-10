@@ -23,7 +23,8 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] && ENV['TEST_3SCALE_USER_KEYS']
     def test_failed_authorize
       response = @client.authorize(:user_key => 'invalid-user-key')
       assert !response.success?
-      assert_equal 'user.invalid_key', response.errors[0].code
+      assert_equal 'user_key_invalid', response.error_code
+      assert_equal 'user key "invalid-user-key" is invalid', response.error_message
     end
 
     def test_successful_report
@@ -40,13 +41,11 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] && ENV['TEST_3SCALE_USER_KEYS']
         {:user_key => user_key, :usage => {'hits' => 1}}
       end
 
-      transactions[0][:user_key] = 'invalid-user-key'
-
-      response = @client.report(*transactions)
+      client   = ThreeScale::Client.new(:provider_key => 'invalid-provider-key')
+      response = client.report(*transactions)
       assert !response.success?
-      assert_equal 1, response.errors.count
-      assert_equal 0, response.errors[0].index
-      assert_equal 'user.invalid_key', response.errors[0].code
+      assert_equal 'provider_key_invalid', response.error_code
+      assert_equal 'provider key "invalid-provider-key" is invalid', response.error_message
     end
   end
 

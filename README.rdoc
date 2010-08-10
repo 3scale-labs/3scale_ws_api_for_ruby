@@ -46,42 +46,40 @@ successful.
     # Something's wrong with this user.
   end
 
-If the authorization succeeded, the response object contains additional information about 
-the status of the user:
+If both provider and user keys are valid, the response object contains additional information 
+about the status of the user:
 
   # Returns the name of the plan the user is signed up to.
   response.plan
 
-If the plan has defined usage limits, the response contains details about how close the user
-is to meet these limits:
+If the plan has defined usage limits, the response contains details about the usage broken
+down by the metrics and usage limit periods.
 
-  # The usages array contains one element per each usage limit defined on the plan.
-  usage = response.usages[0]
+  # The usage_reports array contains one element per each usage limit defined on the plan.
+  usage_report = response.usage_reports[0]
 
   # The metric
-  usage.metric # "hits"
+  usage_report.metric # "hits"
 
   # The period the limit applies to
-  usage.period       # :day
-  usage.period_start # "Wed Apr 28 00:00:00 +0200 2010"
-  usage.period_end   # "Wed Apr 28 23:59:59 +0200 2010"
+  usage_report.period        # :day
+  usage_report.period_start  # "Wed Apr 28 00:00:00 +0200 2010"
+  usage_report.period_end    # "Wed Apr 28 23:59:59 +0200 2010"
 
   # The current value the user already consumed in the period
-  usage.current_value # 8032
+  usage_report.current_value # 8032
 
   # The maximal value allowed by the limit in the period
-  usage.max_value     # 10000
+  usage_report.max_value     # 10000
 
-If the authorization failed, the +errors+ method contains one or more errors with more
-detailed information:
+  # If the limit is exceeded, this will be true, otherwise false:
+  usage_report.exceeded?     # false
 
-  error = response.errors[0]
-
-  # Error code
-  error.code    # "user.exceeded_limits"
-
-  # Human readable error message
-  error.message # "Usage limits are exceeded"
+If the authorization failed, the +error_code+ returns system error code and +error_message+ 
+human readable error description:
+ 
+  response.error_code    # "usage_limits_exceeded"
+  response.error_message # "Usage limits are exceeded"
 
 === Report
 
@@ -111,19 +109,14 @@ successful.
   if response.success?
     # All OK.
   else
-    # There were some errors
+    # There was an error.
   end
 
-If the report was successful, you are done. Otherwise, the +errors+ method will return array
-of errors with more detailed information. Each of these errors has the +index+ attribute that
-returns numeric index of the transaction this error corresponds to. For example, if you report
-three transactions, first two are ok and the last one has invalid user key, there will be
-an error in the +errors+ array with the +index+ equal to 2 (the indices start at 0):
+In case of error, the +error_code+ returns system error code and +error_message+
+human readable error description:
 
-  error = response.errors[0]
-  error.index   # 2
-  error.code    # "user.invalid_key"
-  error.message # "User key is invalid"
+  response.error_code    # "provider_key_invalid"
+  response.error_message # "provider key \"foo\" is invalid"
 
 == Legal
 

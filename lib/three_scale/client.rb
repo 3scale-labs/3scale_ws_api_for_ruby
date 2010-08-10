@@ -24,7 +24,7 @@ module ThreeScale
   #
   #   client = ThreeScale::Client.new(:provider_key => "your provider key")
   #
-  #   response = client.authorize(:user_key => "yout user's key")
+  #   response = client.authorize(:user_key => "your user's key")
   #
   #   if response.success?
   #     response = client.report(:user_key => "your user's key", :usage => {"hits" => 1})
@@ -37,7 +37,7 @@ module ThreeScale
   #   end
   #
   class Client
-    DEFAULT_HOST = 'server.3scale.net'
+    DEFAULT_HOST = 'su1.3scale.net'
 
     def initialize(options)
       if options[:provider_key].nil? || options[:provider_key] =~ /^\s*$/
@@ -97,9 +97,15 @@ module ThreeScale
       payload['provider_key'] = CGI.escape(provider_key)
 
       uri = URI.parse("http://#{host}/transactions.xml")
-
-      process_response(Net::HTTP.post_form(uri, payload)) do |http_response|
-        Response.new(:success => true)
+      http_response = Net::HTTP.post_form(uri, payload)
+      
+      case http_response
+      when Net::HTTPSuccess
+        build_report_response
+      when Net::HTTPClientError
+        build_error_response(http_response.body)
+      else
+        raise ServerError.new(http_response)
       end
     end
 
@@ -114,10 +120,10 @@ module ThreeScale
     # == Return
     #
     # An ThreeScale::AuthorizeResponse object. It's +success?+ method returns true if
-    # the authorization is successful. In that case, it contains additional information
-    # about the status of the use. See the ThreeScale::AuthorizeResponse for more information.
-    # In case of error, the +success?+ method returns false and the +errors+ contains list
-    # of errors with more details.
+    # the authorization is successful, false otherwise. It contains additional information
+    # about the status of the usage. See the ThreeScale::AuthorizeResponse for more information.
+    # In case of error, the +error_code+ returns code of the error and +error_message+
+    # human readable error description.
     #
     # In case of unexpected internal server error, this method raises a ThreeScale::ServerError
     # exception.
@@ -136,24 +142,19 @@ module ThreeScale
         "&user_key=#{CGI.escape(options[:user_key].to_s)}"
 
       uri = URI.parse("http://#{host}#{path}")
+      http_response = Net::HTTP.get_response(uri)
 
-      process_response(Net::HTTP.get_response(uri)) do |http_response|
-        build_authorize_response(http_response.body)
-      end
-    end
-
-    private
-
-    def process_response(http_response)
       case http_response
       when Net::HTTPSuccess
-        yield(http_response)
+        build_authorize_response(http_response.body)
       when Net::HTTPClientError
         build_error_response(http_response.body)
       else
         raise ServerError.new(http_response)
       end
     end
+
+    private
 
     def encode_transactions(transactions)
       result = {}
@@ -175,38 +176,42 @@ module ThreeScale
       result["transactions[#{index}][#{names.join('][')}]"] = CGI.escape(value.to_s) if value
     end
 
+    def build_report_response
+      response = Response.new
+      response.success!
+      response
+    end
+
     def build_authorize_response(body)
       response = AuthorizeResponse.new
       doc = Nokogiri::XML(body)
 
+      if doc.at_css('authorized').content == 'true'
+        response.success!
+      else
+        response.error!(doc.at_css('reason').content)
+      end
+
       response.plan = doc.at_css('plan').content.to_s.strip
 
-      doc.css('usage').each do |node|
-        response.add_usage(:metric        => node['metric'].to_s.strip,
-                           :period        => node['period'].to_s.strip.to_sym,
-                           :period_start  => node.at('period_start').content,
-                           :period_end    => node.at('period_end').content,
-                           :current_value => node.at('current_value').content.to_i,
-                           :max_value     => node.at('max_value').content.to_i)
+      doc.css('usage_reports usage_report').each do |node|
+        response.add_usage_report(:metric        => node['metric'].to_s.strip,
+                                  :period        => node['period'].to_s.strip.to_sym,
+                                  :period_start  => node.at('period_start').content,
+                                  :period_end    => node.at('period_end').content,
+                                  :current_value => node.at('current_value').content.to_i,
+                                  :max_value     => node.at('max_value').content.to_i)
       end
 
       response
     end
 
     def build_error_response(body)
-      response = Response.new(:success => false)
       doc = Nokogiri::XML(body)
-
-      doc.css('error').each do |node|
-        response.add_error(node['index'].to_i, 
-                           
-                           # Backwards compatibility: error code is sometimes in
-                           # the "id" attribute.
-                           node['code'] || node['id'],
-
-                           node.content.to_s.strip)
-      end
-
+      node = doc.at_css('error')
+      
+      response = Response.new
+      response.error!(node.content.to_s.strip, node['code'].to_s.strip)
       response
     end
   end

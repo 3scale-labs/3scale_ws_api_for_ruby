@@ -1,21 +1,24 @@
 module ThreeScale
   class Response
-    def initialize(options)
-      @success = options[:success]
-      @errors  = options[:errors] || []
+    def success!
+      @error_code = nil
+      @error_message = nil
+    end
+
+    def error!(message, code = nil)
+      @error_code = code
+      @error_message = message
     end
 
     def success?
-      @success
+      @error_code.nil? && @error_message.nil?
     end
-  
-    Error = Struct.new(:index, :code, :message)
-    
-    attr_reader :errors
+ 
+    # System error code.
+    attr_reader :error_code
 
-    def add_error(*args)
-      @errors << Error.new(*args)
-    end
+    # Human readable error message.
+    attr_reader :error_message  
   end
 end
 

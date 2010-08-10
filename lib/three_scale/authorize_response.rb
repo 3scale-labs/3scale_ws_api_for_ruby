@@ -2,14 +2,14 @@ require 'time'
 
 module ThreeScale
   class AuthorizeResponse < Response
-    def initialize(options = {})
-      super({:success => true}.merge(options))
-      @usages = options[:usages] || []
+    def initialize
+      super
+      @usage_reports = []
     end
 
     attr_accessor :plan
 
-    class Usage
+    class UsageReport
       attr_reader :metric
       attr_reader :period
       attr_reader :current_value
@@ -28,12 +28,16 @@ module ThreeScale
       def period_end
         @parsed_period_end ||= @period_end && Time.parse(@period_end)
       end
+
+      def exceeded?
+        current_value > max_value
+      end
     end      
 
-    attr_reader :usages
+    attr_reader :usage_reports
 
-    def add_usage(options)
-      @usages << Usage.new(options)
+    def add_usage_report(options)
+      @usage_reports << UsageReport.new(options)
     end
   end
 end
