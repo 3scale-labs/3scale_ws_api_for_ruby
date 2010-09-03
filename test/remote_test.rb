@@ -10,8 +10,8 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
 
       stripper = lambda { |string| string.strip }
 
-      @app_ids      = ENV['TEST_3SCALE_APP_IDS'].split(',').map(&stripper)
-      @app_keys     = ENV['TEST_3SCALE_APP_KEYS'].split(',').map(&stripper)
+      @app_ids  = ENV['TEST_3SCALE_APP_IDS'].split(',').map(&stripper)
+      @app_keys = ENV['TEST_3SCALE_APP_KEYS'].split(',').map(&stripper)
 
       @client = ThreeScale::Client.new(:provider_key => @provider_key)
 
