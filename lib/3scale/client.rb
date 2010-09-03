@@ -3,8 +3,8 @@ require 'uri'
 require 'net/http'
 require 'nokogiri'
 
-require 'three_scale/response'
-require 'three_scale/authorize_response'
+require '3scale/response'
+require '3scale/authorize_response'
 
 module ThreeScale
   Error = Class.new(RuntimeError)
@@ -24,7 +24,7 @@ module ThreeScale
   #
   #   client = ThreeScale::Client.new(:provider_key => "your provider key")
   #
-  #   response = client.authorize(:user_key => "your user's key")
+  #   response = client.authorize(:app_id => "an app id", :app_key => "a secret key")
   #
   #   if response.success?
   #     response = client.report(:user_key => "your user's key", :usage => {"hits" => 1})
@@ -82,11 +82,11 @@ module ThreeScale
     # == Examples
     #
     #   # Report two transactions of two users.
-    #   client.report({:user_key => 'foo', :usage => {'hits' => 1}},
-    #                 {:user_key => 'bar', :usage => {'hits' => 1}})
+    #   client.report({:app_id => 'foo', :usage => {'hits' => 1}},
+    #                 {:app_id => 'bar', :usage => {'hits' => 1}})
     #
     #   # Report one transaction with timestamp.
-    #   client.report({:user_key  => 'foo',
+    #   client.report({:app_id    => 'foo',
     #                  :timestamp => Time.local(2010, 4, 27, 15, 14),
     #                  :usage     => {'hits' => 1})
     #
@@ -115,7 +115,9 @@ module ThreeScale
     # 
     # Hash with options:
     #
-    #   user_key:: API key of the user to authorize. This is required.
+    #   app_id::  id of the application to authorize. This is required.
+    #   app_key:: secret key assigned to the application. Required only if application has
+    #             a key defined.
     #
     # == Return
     #
@@ -130,7 +132,7 @@ module ThreeScale
     #
     # == Examples
     #
-    #   response = client.authorize(:user_key => 'foo')
+    #   response = client.authorize(:app_id => '1234')
     #
     #   if response.success?
     #     # All good. Proceed...
@@ -139,7 +141,8 @@ module ThreeScale
     def authorize(options)
       path = "/transactions/authorize.xml" +
         "?provider_key=#{CGI.escape(provider_key)}" +
-        "&user_key=#{CGI.escape(options[:user_key].to_s)}"
+        "&app_id=#{CGI.escape(options[:app_id].to_s)}"
+      path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
 
       uri = URI.parse("http://#{host}#{path}")
       http_response = Net::HTTP.get_response(uri)
@@ -160,7 +163,7 @@ module ThreeScale
       result = {}
       
       transactions.each_with_index do |transaction, index|
-        append_encoded_value(result, index, [:user_key],  transaction[:user_key])
+        append_encoded_value(result, index, [:app_id],    transaction[:app_id])
         append_encoded_value(result, index, [:timestamp], transaction[:timestamp])
         append_encoded_value(result, index, [:client_ip], transaction[:client_ip])
 
