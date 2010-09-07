@@ -24,7 +24,7 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
     def test_successful_authorize
       @app_keys.each do |app_key|
         response = @client.authorize(:app_id => @app_ids[0], :app_key => app_key)
-        assert response.success?
+        assert response.success?, "Authorize should succeed for app_id=#{@app_ids[0]} and app_key=#{app_key}, but it didn't"
       end
     end
 

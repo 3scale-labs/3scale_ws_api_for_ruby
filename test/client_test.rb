@@ -143,7 +143,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
                          :status => ['200', 'OK'])
 
-    response = @client.report({:user_key  => 'foo',
+    response = @client.report({:app_id    => 'foo',
                                :timestamp => Time.local(2010, 4, 27, 15, 00),
                                :usage     => {'hits' => 1}})
 
@@ -182,7 +182,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
                          :body   => error_body)
    
     client   = ThreeScale::Client.new(:provider_key => 'foo')                         
-    response = client.report({:user_key => 'abc', :usage => {'hits' => 1}})
+    response = client.report({:app_id => 'abc', :usage => {'hits' => 1}})
 
     assert !response.success?
     assert_equal 'provider_key_invalid',          response.error_code
@@ -195,7 +195,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
                          :body   => 'OMG! WTF!')
 
     assert_raise ThreeScale::ServerError do
-      @client.report({:user_key => 'foo', :usage => {'hits' => 1}})
+      @client.report({:app_id => 'foo', :usage => {'hits' => 1}})
     end
   end
 end

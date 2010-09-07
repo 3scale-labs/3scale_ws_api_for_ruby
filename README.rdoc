@@ -32,10 +32,10 @@ Because the object is stateless, you can create just one and store it globally.
 
 === Authorize
 
-To authorize a particular user, call the +authorize+ method passing it the user key
-identifiing the user:
+To authorize an application, call the +authorize+ method passing it the application's id and
+optionally a key:
 
-  response = client.authorize(:user_key => "the user key")
+  response = client.authorize(:app_id => "the app id", :app_id => "the app key")
 
 Then call the +success?+ method on the returned object to see if the authorization was
 successful.
@@ -43,13 +43,13 @@ successful.
   if response.success?
     # All fine, proceeed.
   else
-    # Something's wrong with this user.
+    # Something's wrong with this application.
   end
 
-If both provider and user keys are valid, the response object contains additional information 
-about the status of the user:
+If both provider key and app id are valid, the response object contains additional
+information about the status of the application:
 
-  # Returns the name of the plan the user is signed up to.
+  # Returns the name of the plan the application is signed up to.
   response.plan
 
 If the plan has defined usage limits, the response contains details about the usage broken
@@ -66,7 +66,7 @@ down by the metrics and usage limit periods.
   usage_report.period_start  # "Wed Apr 28 00:00:00 +0200 2010"
   usage_report.period_end    # "Wed Apr 28 23:59:59 +0200 2010"
 
-  # The current value the user already consumed in the period
+  # The current value the application already consumed in the period
   usage_report.current_value # 8032
 
   # The maximal value allowed by the limit in the period
@@ -85,13 +85,13 @@ human readable error description:
 
 To report usage, use the +report+ method. You can report multiple transaction at the same time:
 
-  response = client.report({:user_key => "first user's key",  :usage => {'hits' => 1}},
-                           {:user_key => "second user's key", :usage => {'hits' => 1}})
+  response = client.report({:app_id => "first app id",  :usage => {'hits' => 1}},
+                           {:app_id => "second app id", :usage => {'hits' => 1}})
 
-The :user_key and :usage parameters are required. Additionaly, you can specify a timestamp
+The :app_id and :usage parameters are required. Additionaly, you can specify a timestamp
 of transaction:
 
-  response = client.report({:user_key => "user's key", :usage => {'hits' => 1},
+  response = client.report({:app_id => "app id", :usage => {'hits' => 1},
                             :timestamp => Time.local(2010, 4, 28, 12, 36)})
 
 The timestamp can be either a Time object (from ruby's standard library) or something that

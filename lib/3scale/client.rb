@@ -27,7 +27,7 @@ module ThreeScale
   #   response = client.authorize(:app_id => "an app id", :app_key => "a secret key")
   #
   #   if response.success?
-  #     response = client.report(:user_key => "your user's key", :usage => {"hits" => 1})
+  #     response = client.report(:app_id => "some app id", :usage => {"hits" => 1})
   #
   #     if response.success?
   #       # all fine.
@@ -58,7 +58,7 @@ module ThreeScale
     # The parameters the transactions to report. Each transaction is a hash with
     # these elements:
     #
-    #   user_key::  API key of the user to report the transaction for. This parameter is
+    #   app_id::    ID of the application to report the transaction for. This parameter is
     #               required.
     #   usage::     Hash of usage values. The keys are metric names and values are
     #               correspoding numeric values. Example: {'hits' => 1, 'transfer' => 1024}. 
@@ -81,7 +81,7 @@ module ThreeScale
     #
     # == Examples
     #
-    #   # Report two transactions of two users.
+    #   # Report two transactions of two applications.
     #   client.report({:app_id => 'foo', :usage => {'hits' => 1}},
     #                 {:app_id => 'bar', :usage => {'hits' => 1}})
     #
@@ -109,7 +109,7 @@ module ThreeScale
       end
     end
 
-    # Authorize a user.
+    # Authorize an application.
     #
     # == Parameters
     # 
