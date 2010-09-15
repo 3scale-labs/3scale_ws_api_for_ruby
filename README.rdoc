@@ -1,5 +1,7 @@
 = Client for 3scale web service management system API
 
+Please note: This version of the library targets the new API, which is currently in beta phase. Please contact 3scale support as support@3scale.net before you use it. You can also use older version (2.2.0) targeting the old API: http://github.com/3scale/3scale_ws_api_for_ruby/tree/v2.2.0.
+ 
 == Installation
 
 This library is distributed as a gem:
