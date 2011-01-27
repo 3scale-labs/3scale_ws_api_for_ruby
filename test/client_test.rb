@@ -104,7 +104,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
               </usage_reports>
             </status>'
     
-    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['200', 'OK'], :body => body)
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['409'], :body => body)
     
     response = @client.authorize(:app_id => 'foo')
 

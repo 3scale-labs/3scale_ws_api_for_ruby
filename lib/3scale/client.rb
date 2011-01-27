@@ -148,7 +148,7 @@ module ThreeScale
       http_response = Net::HTTP.get_response(uri)
 
       case http_response
-      when Net::HTTPSuccess
+      when Net::HTTPSuccess,Net::HTTPConflict
         build_authorize_response(http_response.body)
       when Net::HTTPClientError
         build_error_response(http_response.body)
