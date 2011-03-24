@@ -11,7 +11,7 @@ http://github.com/3scale/3scale_ws_api_for_ruby
 
 If you are using Rails, put this into your config/environment.rb
 
-  config.gem "3scale_client"
+  config.gem "3scale_client", :lib => '3scale/client'
 
 Otherwise, require the gem in whatever way is natural to your framework of choice.
 
@@ -28,7 +28,7 @@ Because the object is stateless, you can create just one and store it globally.
 To authorize an application, call the +authorize+ method passing it the application's id and
 optionally a key:
 
-  response = client.authorize(:app_id => "the app id", :app_id => "the app key")
+  response = client.authorize(:app_id => "the app id", :app_key => "the app key")
 
 Then call the +success?+ method on the returned object to see if the authorization was
 successful.
