@@ -9,7 +9,13 @@ This library is distributed as a gem:
 Or alternatively, download the source code from github: 
 http://github.com/3scale/3scale_ws_api_for_ruby
 
-If you are using Rails, put this into your config/environment.rb
+If you are using Bundler, please add this to your Gemfile:
+
+  gem '3scale_client', :require => '3scale/client'
+
+and do a bundle install.
+
+If you are using Rails' config.gems, put this into your config/environment.rb
 
   config.gem "3scale_client", :lib => '3scale/client'
 
