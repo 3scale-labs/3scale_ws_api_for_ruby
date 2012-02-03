@@ -1,0 +1,15 @@
+PATH
+  remote: .
+  specs:
+    3scale_client (2.2.7)
+      nokogiri
+
+GEM
+  specs:
+    nokogiri (1.5.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  3scale_client!
