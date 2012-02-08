@@ -28,44 +28,46 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   def test_successful_authorize
     body = '<status>
               <authorized>true</authorized>
+              <application>
+                <id>94bd2de3</id>
+                <key>883bdb8dbc3b6b77dbcf26845560fdbb</key>
+                <redirect_url></redirect_url>
+              </application>
               <plan>Ultimate</plan>
-             
               <usage_reports>
-                <usage_report metric="hits" period="day">
-                  <period_start>2010-04-26 00:00:00 +0000</period_start>
-                  <period_end>2010-04-27 00:00:00 +0000</period_end>
-                  <current_value>10023</current_value>
-                  <max_value>50000</max_value>
+                <usage_report metric="hits" period="week">
+                  <period_start>2012-01-30 00:00:00 +0000</period_start>
+                  <period_end>2012-02-06 00:00:00 +0000</period_end>
+                  <max_value>5000</max_value>
+                  <current_value>1</current_value>
                 </usage_report>
-
-                <usage_report metric="hits" period="month">
-                  <period_start>2010-04-01 00:00:00 +0000</period_start>
-                  <period_end>2010-05-01 00:00:00 +0000</period_end>
-                  <current_value>999872</current_value>
-                  <max_value>150000</max_value>
+                <usage_report metric="update" period="minute">
+                  <period_start>2012-02-03 00:00:00 +0000</period_start>
+                  <period_end>2012-02-03 00:00:00 +0000</period_end>
+                  <max_value>0</max_value>
+                  <current_value>0</current_value>
                 </usage_report>
               </usage_reports>
             </status>'
 
-    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['200', 'OK'], :body => body)
-
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['200', 'OK'], :body => body)
+    
     response = @client.authorize(:app_id => 'foo')
-
     assert response.success?
     assert_equal 'Ultimate', response.plan
     assert_equal 2, response.usage_reports.size
     
-    assert_equal :day, response.usage_reports[0].period
-    assert_equal Time.utc(2010, 4, 26), response.usage_reports[0].period_start
-    assert_equal Time.utc(2010, 4, 27), response.usage_reports[0].period_end
-    assert_equal 10023, response.usage_reports[0].current_value
-    assert_equal 50000, response.usage_reports[0].max_value
+    assert_equal :week, response.usage_reports[0].period
+    assert_equal Time.utc(2012, 1, 30), response.usage_reports[0].period_start
+    assert_equal Time.utc(2012, 02, 06), response.usage_reports[0].period_end
+    assert_equal 1, response.usage_reports[0].current_value
+    assert_equal 5000, response.usage_reports[0].max_value
 
-    assert_equal :month, response.usage_reports[1].period
-    assert_equal Time.utc(2010, 4, 1), response.usage_reports[1].period_start
-    assert_equal Time.utc(2010, 5, 1), response.usage_reports[1].period_end
-    assert_equal 999872, response.usage_reports[1].current_value
-    assert_equal 150000, response.usage_reports[1].max_value
+    assert_equal :minute, response.usage_reports[1].period
+    assert_equal Time.utc(2012, 2, 03), response.usage_reports[1].period_start
+    assert_equal Time.utc(2012, 2, 03), response.usage_reports[1].period_end
+    assert_equal 0, response.usage_reports[1].current_value
+    assert_equal 0, response.usage_reports[1].max_value
   end
   
   def test_successful_authorize_with_app_keys
@@ -74,7 +76,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
               <plan>Ultimate</plan>
             </status>'
 
-    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo&app_key=toosecret", :status => ['200', 'OK'], :body => body)
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo&app_key=toosecret", :status => ['200', 'OK'], :body => body)
 
     response = @client.authorize(:app_id => 'foo', :app_key => 'toosecret')
     assert response.success?
@@ -104,7 +106,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
               </usage_reports>
             </status>'
     
-    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['409'], :body => body)
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['409'], :body => body)
     
     response = @client.authorize(:app_id => 'foo')
 
@@ -116,7 +118,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   def test_authorize_with_invalid_app_id
     body = '<error code="application_not_found">application with id="foo" was not found</error>'
     
-    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['403', 'Forbidden'], :body => body)
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['403', 'Forbidden'], :body => body)
 
     response = @client.authorize(:app_id => 'foo')
 
@@ -126,7 +128,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   end
   
   def test_authorize_with_server_error
-    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['500', 'Internal Server Error'], :body => 'OMG! WTF!')
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['500', 'Internal Server Error'], :body => 'OMG! WTF!')
 
     assert_raise ThreeScale::ServerError do
       @client.authorize(:app_id => 'foo')

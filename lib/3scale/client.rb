@@ -139,7 +139,7 @@ module ThreeScale
     #   end
     #
     def authorize(options)
-      path = "/transactions/authorize.xml" +
+      path = "/transactions/oauth_authorize.xml" +
         "?provider_key=#{CGI.escape(provider_key)}" +
         "&app_id=#{CGI.escape(options[:app_id].to_s)}"
       path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
