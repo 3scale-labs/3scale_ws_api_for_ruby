@@ -31,7 +31,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
               <application>
                 <id>94bd2de3</id>
                 <key>883bdb8dbc3b6b77dbcf26845560fdbb</key>
-                <redirect_url></redirect_url>
+                <redirect_url>http://localhost:8080/oauth/oauth_redirect</redirect_url>
               </application>
               <plan>Ultimate</plan>
               <usage_reports>
@@ -56,6 +56,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert response.success?
 
     assert_equal '883bdb8dbc3b6b77dbcf26845560fdbb', response.app_key
+    assert_equal 'http://localhost:8080/oauth/oauth_redirect', response.redirect_url
 
     assert_equal 'Ultimate', response.plan
     assert_equal 2, response.usage_reports.size
@@ -80,7 +81,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
               <application>
                 <id>94bd2de3</id>
                 <key>883bdb8dbc3b6b77dbcf26845560fdbb</key>
-                <redirect_url></redirect_url>
+                <redirect_url>http://localhost:8080/oauth/oauth_redirect</redirect_url>
               </application>
               <plan>Ultimate</plan>
               <usage_reports>

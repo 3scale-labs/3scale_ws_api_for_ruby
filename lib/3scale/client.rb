@@ -196,6 +196,7 @@ module ThreeScale
       end
 
       response.app_key = doc.at_css('application key').content.to_s.strip
+      response.redirect_url = doc.at_css('application redirect_url').content.to_s.strip
 
       response.plan = doc.at_css('plan').content.to_s.strip
 
