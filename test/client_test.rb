@@ -54,6 +54,9 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
 
     response = @client.oauth_authorize(:app_id => 'foo')
     assert response.success?
+
+    assert_equal '883bdb8dbc3b6b77dbcf26845560fdbb', response.app_key
+
     assert_equal 'Ultimate', response.plan
     assert_equal 2, response.usage_reports.size
 
@@ -74,9 +77,12 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     body = '<status>
               <authorized>false</authorized>
               <reason>usage limits are exceeded</reason>
-
+              <application>
+                <id>94bd2de3</id>
+                <key>883bdb8dbc3b6b77dbcf26845560fdbb</key>
+                <redirect_url></redirect_url>
+              </application>
               <plan>Ultimate</plan>
-
               <usage_reports>
                 <usage_report metric="hits" period="day" exceeded="true">
                   <period_start>2010-04-26 00:00:00 +0000</period_start>
