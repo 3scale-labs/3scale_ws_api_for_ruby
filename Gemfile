@@ -1,5 +1,5 @@
-source "http://gems.github.com"
-gem 'fakeweb', :git => "https://github.com/chrisk/fakeweb.git"
+source "http://rubygems.org"
+gem 'fakeweb'
 gem 'jeweler'
 gem 'mocha'
 gemspec
