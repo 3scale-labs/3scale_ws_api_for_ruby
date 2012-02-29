@@ -25,7 +25,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert_equal 'su1.3scale.net', client.host
   end
 
-  def test_successful_authorize
+  def test_successful_oauth_authorize
     body = '<status>
               <authorized>true</authorized>
               <application>
@@ -51,12 +51,12 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
             </status>'
 
     FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['200', 'OK'], :body => body)
-    
-    response = @client.authorize(:app_id => 'foo')
+
+    response = @client.oauth_authorize(:app_id => 'foo')
     assert response.success?
     assert_equal 'Ultimate', response.plan
     assert_equal 2, response.usage_reports.size
-    
+
     assert_equal :week, response.usage_reports[0].period
     assert_equal Time.utc(2012, 1, 30), response.usage_reports[0].period_start
     assert_equal Time.utc(2012, 02, 06), response.usage_reports[0].period_end
@@ -69,26 +69,14 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert_equal 0, response.usage_reports[1].current_value
     assert_equal 0, response.usage_reports[1].max_value
   end
-  
-  def test_successful_authorize_with_app_keys
-    body = '<status>
-              <authorized>true</authorized>
-              <plan>Ultimate</plan>
-            </status>'
 
-    FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo&app_key=toosecret", :status => ['200', 'OK'], :body => body)
-
-    response = @client.authorize(:app_id => 'foo', :app_key => 'toosecret')
-    assert response.success?
-  end
-
-  def test_authorize_with_exceeded_usage_limits
+  def test_oauth_authorize_with_exceeded_usage_limits
     body = '<status>
               <authorized>false</authorized>
               <reason>usage limits are exceeded</reason>
 
               <plan>Ultimate</plan>
-             
+
               <usage_reports>
                 <usage_report metric="hits" period="day" exceeded="true">
                   <period_start>2010-04-26 00:00:00 +0000</period_start>
@@ -105,33 +93,33 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
                 </usage_report>
               </usage_reports>
             </status>'
-    
+
     FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['409'], :body => body)
-    
-    response = @client.authorize(:app_id => 'foo')
+
+    response = @client.oauth_authorize(:app_id => 'foo')
 
     assert !response.success?
     assert_equal 'usage limits are exceeded', response.error_message
     assert response.usage_reports[0].exceeded?
   end
 
-  def test_authorize_with_invalid_app_id
+  def test_oauth_authorize_with_invalid_app_id
     body = '<error code="application_not_found">application with id="foo" was not found</error>'
-    
+
     FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['403', 'Forbidden'], :body => body)
 
-    response = @client.authorize(:app_id => 'foo')
+    response = @client.oauth_authorize(:app_id => 'foo')
 
     assert !response.success?
     assert_equal 'application_not_found',                   response.error_code
     assert_equal 'application with id="foo" was not found', response.error_message
   end
-  
+
   def test_authorize_with_server_error
     FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['500', 'Internal Server Error'], :body => 'OMG! WTF!')
 
     assert_raise ThreeScale::ServerError do
-      @client.authorize(:app_id => 'foo')
+      @client.oauth_authorize(:app_id => 'foo')
     end
   end
 
@@ -182,8 +170,8 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
                          :status => ['403', 'Forbidden'],
                          :body   => error_body)
-   
-    client   = ThreeScale::Client.new(:provider_key => 'foo')                         
+
+    client   = ThreeScale::Client.new(:provider_key => 'foo')
     response = client.report({:app_id => 'abc', :usage => {'hits' => 1}})
 
     assert !response.success?

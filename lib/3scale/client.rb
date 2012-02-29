@@ -8,7 +8,7 @@ require '3scale/authorize_response'
 
 module ThreeScale
   Error = Class.new(RuntimeError)
-    
+
   class ServerError < Error
     def initialize(response)
       super('server error')
@@ -61,11 +61,11 @@ module ThreeScale
     #   app_id::    ID of the application to report the transaction for. This parameter is
     #               required.
     #   usage::     Hash of usage values. The keys are metric names and values are
-    #               correspoding numeric values. Example: {'hits' => 1, 'transfer' => 1024}. 
+    #               correspoding numeric values. Example: {'hits' => 1, 'transfer' => 1024}.
     #               This parameter is required.
     #   timestamp:: Timestamp of the transaction. This can be either a object of the
     #               ruby's Time class, or a string in the "YYYY-MM-DD HH:MM:SS" format
-    #               (if the time is in the UTC), or a string in 
+    #               (if the time is in the UTC), or a string in
     #               the "YYYY-MM-DD HH:MM:SS ZZZZZ" format, where the ZZZZZ is the time offset
     #               from the UTC. For example, "US Pacific Time" has offset -0800, "Tokyo"
     #               has offset +0900. This parameter is optional, and if not provided, equals
@@ -98,7 +98,7 @@ module ThreeScale
 
       uri = URI.parse("http://#{host}/transactions.xml")
       http_response = Net::HTTP.post_form(uri, payload)
-      
+
       case http_response
       when Net::HTTPSuccess
         build_report_response
@@ -109,21 +109,22 @@ module ThreeScale
       end
     end
 
-    # Authorize an application.
+    # Authorize an application with OAuth.
     #
     # == Parameters
-    # 
+    #
     # Hash with options:
     #
     #   app_id::  id of the application to authorize. This is required.
-    #   app_key:: secret key assigned to the application. Required only if application has
-    #             a key defined.
     #
     # == Return
     #
-    # An ThreeScale::AuthorizeResponse object. It's +success?+ method returns true if
+    # A ThreeScale::AuthorizeResponse object. It's +success?+ method returns true if
     # the authorization is successful, false otherwise. It contains additional information
     # about the status of the usage. See the ThreeScale::AuthorizeResponse for more information.
+    #
+    # It also returns the app_key that corresponds to the given app_id
+    #
     # In case of error, the +error_code+ returns code of the error and +error_message+
     # human readable error description.
     #
@@ -138,11 +139,10 @@ module ThreeScale
     #     # All good. Proceed...
     #   end
     #
-    def authorize(options)
+    def oauth_authorize(options)
       path = "/transactions/oauth_authorize.xml" +
         "?provider_key=#{CGI.escape(provider_key)}" +
         "&app_id=#{CGI.escape(options[:app_id].to_s)}"
-      path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
 
       uri = URI.parse("http://#{host}#{path}")
       http_response = Net::HTTP.get_response(uri)
@@ -161,7 +161,7 @@ module ThreeScale
 
     def encode_transactions(transactions)
       result = {}
-      
+
       transactions.each_with_index do |transaction, index|
         append_encoded_value(result, index, [:app_id],    transaction[:app_id])
         append_encoded_value(result, index, [:timestamp], transaction[:timestamp])
@@ -212,7 +212,7 @@ module ThreeScale
     def build_error_response(body)
       doc = Nokogiri::XML(body)
       node = doc.at_css('error')
-      
+
       response = Response.new
       response.error!(node.content.to_s.strip, node['code'].to_s.strip)
       response
