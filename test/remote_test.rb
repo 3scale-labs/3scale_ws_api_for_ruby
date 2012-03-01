@@ -21,6 +21,20 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
       end
     end
 
+    def test_successful_authorize
+      @app_keys.each do |app_key|
+        response = @client.authorize(:app_id => @app_ids[0], :app_key => app_key)
+        assert response.success?, "Authorize should succeed for app_id=#{@app_ids[0]} and app_key=#{app_key}, but it failed with: '#{response.error_message}'"
+      end
+    end
+
+    def test_failed_authorize
+      response = @client.authorize(:app_id => 'invalid-id')
+      assert !response.success?
+      assert_equal 'application_not_found',                          response.error_code
+      assert_equal 'application with id="invalid-id" was not found', response.error_message
+    end
+
     def test_successful_oauth_authorize
       @app_keys.each do |app_key|
         response = @client.oauth_authorize(:app_id => @app_ids[0])

@@ -109,6 +109,54 @@ module ThreeScale
       end
     end
 
+    # Authorize an application.
+    #
+    # == Parameters
+    #
+    # Hash with options:
+    #
+    #   app_id::  id of the application to authorize. This is required.
+    #   app_key:: secret key assigned to the application. Required only if application has
+    #             a key defined.
+    #
+    # == Return
+    #
+    # An ThreeScale::AuthorizeResponse object. It's +success?+ method returns true if
+    # the authorization is successful, false otherwise. It contains additional information
+    # about the status of the usage. See the ThreeScale::AuthorizeResponse for more information.
+    # In case of error, the +error_code+ returns code of the error and +error_message+
+    # human readable error description.
+    #
+    # In case of unexpected internal server error, this method raises a ThreeScale::ServerError
+    # exception.
+    #
+    # == Examples
+    #
+    #   response = client.authorize(:app_id => '1234')
+    #
+    #   if response.success?
+    #     # All good. Proceed...
+    #   end
+    #
+    def authorize(options)
+      path = "/transactions/authorize.xml" +
+        "?provider_key=#{CGI.escape(provider_key)}" +
+        "&app_id=#{CGI.escape(options[:app_id].to_s)}"
+      path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
+
+      uri = URI.parse("http://#{host}#{path}")
+      http_response = Net::HTTP.get_response(uri)
+
+      case http_response
+      when Net::HTTPSuccess,Net::HTTPConflict
+        build_authorize_response(http_response.body)
+      when Net::HTTPClientError
+        build_error_response(http_response.body)
+      else
+        raise ServerError.new(http_response)
+      end
+    end
+
     # Authorize an application with OAuth.
     #
     # == Parameters
@@ -195,8 +243,10 @@ module ThreeScale
         response.error!(doc.at_css('reason').content)
       end
 
-      response.app_key = doc.at_css('application key').content.to_s.strip
-      response.redirect_url = doc.at_css('application redirect_url').content.to_s.strip
+      if doc.at_css('application')
+        response.app_key      = doc.at_css('application key').content.to_s.strip
+        response.redirect_url = doc.at_css('application redirect_url').content.to_s.strip
+      end
 
       response.plan = doc.at_css('plan').content.to_s.strip
 
