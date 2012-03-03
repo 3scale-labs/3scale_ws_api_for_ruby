@@ -28,13 +28,7 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
       end
     end
 
-    def test_failed_authorize_due_to_missing_app_key
-      response = @client.authorize(:app_id => @app_ids[0])
-      assert !response.success?
-      assert_equal 'application key is missing', response.error_message
-    end
-
-    def test_failed_authorize_due_to_invalid_app_id
+    def test_failed_authorize
       response = @client.authorize(:app_id => 'invalid-id')
       assert !response.success?
       assert_equal 'application_not_found',                          response.error_code
