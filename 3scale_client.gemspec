@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.date = %q{2011-01-27}
   s.description = %q{This gem allows to easily connect an application that provides a Web Service with the 3scale API Management System to authorize it's users and report the usage.
 }
-  s.email = %q{adam@3scale.net}
+  s.email = %q{adam@3scale.net tiago@3scale.net}
   s.extra_rdoc_files = [
     "README.rdoc"
   ]
@@ -51,5 +51,9 @@ Gem::Specification.new do |s|
   else
     s.add_dependency(%q<nokogiri>, [">= 0"])
   end
+
+  s.add_development_dependency 'fakeweb'
+  s.add_development_dependency 'jeweler'
+  s.add_development_dependency 'mocha'
 end
 

@@ -1,8 +1,10 @@
 # encoding: utf-8
+require "rubygems"
+require "bundler/setup"
 
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 
 desc 'Default: run unit tests.'
 task :default => :test
@@ -11,7 +13,6 @@ desc 'Run unit tests.'
 Rake::TestTask.new(:test) do |t|
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
-  t.ruby_opts << '-rubygems'
 end
 
 desc 'Generate documentation.'

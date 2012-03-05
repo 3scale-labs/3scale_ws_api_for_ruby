@@ -8,6 +8,8 @@ module ThreeScale
     end
 
     attr_accessor :plan
+    attr_accessor :app_key
+    attr_accessor :redirect_url
 
     class UsageReport
       attr_reader :metric
@@ -32,7 +34,7 @@ module ThreeScale
       def exceeded?
         current_value > max_value
       end
-    end      
+    end
 
     attr_reader :usage_reports
 
