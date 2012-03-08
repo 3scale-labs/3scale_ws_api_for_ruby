@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   s.files = [
     ".gitignore",
      "3scale_client.gemspec",
+     "Gemfile",
      "LICENCE",
      "README.rdoc",
      "Rakefile",
