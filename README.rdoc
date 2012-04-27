@@ -86,7 +86,7 @@ human readable error description:
 
 To authorize an application with OAuth, call the +oauth_authorize+ method passing it the application's id.
 
-  response = client.authorize(:app_id => "the app id")
+  response = client.oauth_authorize(:app_id => "the app id")
 
 If the authorization is successful, the response will contain the +app_key+ and +redirect_url+ defined for this application:
 
