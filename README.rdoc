@@ -13,13 +13,13 @@ http://github.com/3scale/3scale_ws_api_for_ruby
 
 If you are using Bundler, please add this to your Gemfile:
 
-  gem '3scale_client', :require => '3scale/client'
+  gem '3scale_client'
 
 and do a bundle install.
 
 If you are using Rails' config.gems, put this into your config/environment.rb
 
-  config.gem "3scale_client", :lib => '3scale/client'
+  config.gem '3scale_client
 
 Otherwise, require the gem in whatever way is natural to your framework of choice.
 
