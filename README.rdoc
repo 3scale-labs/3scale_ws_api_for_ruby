@@ -129,8 +129,3 @@ human readable error description:
 
   response.error_code    # "provider_key_invalid"
   response.error_message # "provider key \"foo\" is invalid"
-
-== Legal
-
-Copyright (c) 2010 3scale networks S.L., released under the MIT license.
-
