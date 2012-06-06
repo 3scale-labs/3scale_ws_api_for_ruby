@@ -2,11 +2,10 @@
 
 Gem::Specification.new do |s|
   s.name = %q{3scale_client}
-  s.version = "2.2.9"
+  s.version = "2.2.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Adam Cigánek", "Tiago Macedo"]
-  s.date = %q{2011-01-27}
   s.description = %q{This gem allows to easily connect an application that provides a Web Service with the 3scale API Management System to authorize its users and report the usage.
 }
   s.email = %q{adam@3scale.net tiago@3scale.net}
