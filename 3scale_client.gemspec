@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Adam Cigánek", "Tiago Macedo"]
-  s.description = %q{This gem allows to easily connect an application that provides a Web Service with the 3scale API Management System to authorize its users and report the usage.
+  s.description = %q{Ruby client for 3scale platform. 3scale is an API Infrastructure service which handles API Keys, Rate Limiting, Analytics, Billing Payments and Developer Management. Includes a configurable API dashboard and developer portal CMS. More information at http://www.3scale.net/ or http://support.3scale.net/.
 }
   s.email = %q{adam@3scale.net tiago@3scale.net}
   s.extra_rdoc_files = [
