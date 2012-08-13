@@ -161,15 +161,22 @@ module ThreeScale
     # TODO
     #
     def authrep(options)
-      #TODO user_key auth pattern
       path = "/transactions/authrep.xml" +
-        "?provider_key=#{CGI.escape(provider_key)}" +
-        "&app_id=#{CGI.escape(options[:app_id].to_s)}"
-      path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
+        "?provider_key=#{CGI.escape(provider_key)}"
 
-      options[:usage] ||= {:hits => 1}
+      # removing nested params to handle later
+      options_usage = options.delete :usage
+      options_log   = options.delete :log
+
+      # unnested params passed are injected in path
+      options.each_pair do |param, value|
+        path += "&#{param}=#{CGI.escape(value.to_s)}"
+      end
+
+      # usage handling
+      options_usage ||= {:hits => 1}
       usage = []
-      options[:usage].each_pair do |metric, value|
+      options_usage.each_pair do |metric, value|
         escaped_metric = CGI.escape "[usage][#{metric}]"
         usage << "#{escaped_metric}=#{value}"
       end
