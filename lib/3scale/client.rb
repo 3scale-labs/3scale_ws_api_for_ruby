@@ -157,6 +157,38 @@ module ThreeScale
       end
     end
 
+    # Authorize and report an application.
+    # TODO
+    #
+    def authrep(options)
+      #TODO user_key auth pattern
+      path = "/transactions/authrep.xml" +
+        "?provider_key=#{CGI.escape(provider_key)}" +
+        "&app_id=#{CGI.escape(options[:app_id].to_s)}"
+      path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
+
+      options[:usage] ||= {:hits => 1}
+      usage = []
+      options[:usage].each_pair do |metric, value|
+        escaped_metric = CGI.escape "[usage][#{metric}]"
+        usage << "#{escaped_metric}=#{value}"
+      end
+      path += "&#{usage.join('&')}"
+      #TODO log
+
+      uri = URI.parse("http://#{host}#{path}")
+      http_response = Net::HTTP.get_response(uri)
+
+      case http_response
+      when Net::HTTPSuccess,Net::HTTPConflict
+        build_authorize_response(http_response.body)
+      when Net::HTTPClientError
+        build_error_response(http_response.body)
+      else
+        raise ServerError.new(http_response)
+      end
+    end
+
     # Authorize an application with OAuth.
     #
     # == Parameters
