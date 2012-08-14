@@ -173,7 +173,6 @@ module ThreeScale
         path += "&#{param}=#{CGI.escape(value.to_s)}"
       end
 
-      # usage handling
       options_usage ||= {:hits => 1}
       usage = []
       options_usage.each_pair do |metric, value|
@@ -181,7 +180,15 @@ module ThreeScale
         usage << "#{escaped_metric}=#{value}"
       end
       path += "&#{usage.join('&')}"
-      #TODO log
+
+      if options_log
+        log = []
+        options_log.each_pair do |key, value|
+          escaped_key = CGI.escape "[log][#{key}]"
+          log << "#{escaped_key}=#{CGI.escape(value)}"
+        end
+        path += "&#{log.join('&')}"
+      end
 
       uri = URI.parse("http://#{host}#{path}")
       http_response = Net::HTTP.get_response(uri)
