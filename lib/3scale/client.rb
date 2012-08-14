@@ -51,6 +51,49 @@ module ThreeScale
     attr_reader :provider_key
     attr_reader :host
 
+    # Authorize and report an application.
+    # TODO
+    #
+    def authrep(options)
+      path = "/transactions/authrep.xml?provider_key=#{CGI.escape(provider_key)}"
+
+      options_usage = options.delete :usage
+      options_log   = options.delete :log
+
+      options.each_pair do |param, value|
+        path += "&#{param}=#{CGI.escape(value.to_s)}"
+      end
+
+      options_usage ||= {:hits => 1}
+      usage = []
+      options_usage.each_pair do |metric, value|
+        escaped_metric = CGI.escape "[usage][#{metric}]"
+        usage << "#{escaped_metric}=#{value}"
+      end
+      path += "&#{usage.join('&')}"
+
+      if options_log
+        log = []
+        options_log.each_pair do |key, value|
+          escaped_key = CGI.escape "[log][#{key}]"
+          log << "#{escaped_key}=#{CGI.escape(value)}"
+        end
+        path += "&#{log.join('&')}"
+      end
+
+      uri = URI.parse("http://#{host}#{path}")
+      http_response = Net::HTTP.get_response(uri)
+
+      case http_response
+      when Net::HTTPSuccess,Net::HTTPConflict
+        build_authorize_response(http_response.body)
+      when Net::HTTPClientError
+        build_error_response(http_response.body)
+      else
+        raise ServerError.new(http_response)
+      end
+    end
+
     # Report transaction(s).
     #
     # == Parameters
@@ -143,52 +186,6 @@ module ThreeScale
         "?provider_key=#{CGI.escape(provider_key)}" +
         "&app_id=#{CGI.escape(options[:app_id].to_s)}"
       path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
-
-      uri = URI.parse("http://#{host}#{path}")
-      http_response = Net::HTTP.get_response(uri)
-
-      case http_response
-      when Net::HTTPSuccess,Net::HTTPConflict
-        build_authorize_response(http_response.body)
-      when Net::HTTPClientError
-        build_error_response(http_response.body)
-      else
-        raise ServerError.new(http_response)
-      end
-    end
-
-    # Authorize and report an application.
-    # TODO
-    #
-    def authrep(options)
-      path = "/transactions/authrep.xml" +
-        "?provider_key=#{CGI.escape(provider_key)}"
-
-      # removing nested params to handle later
-      options_usage = options.delete :usage
-      options_log   = options.delete :log
-
-      # unnested params passed are injected in path
-      options.each_pair do |param, value|
-        path += "&#{param}=#{CGI.escape(value.to_s)}"
-      end
-
-      options_usage ||= {:hits => 1}
-      usage = []
-      options_usage.each_pair do |metric, value|
-        escaped_metric = CGI.escape "[usage][#{metric}]"
-        usage << "#{escaped_metric}=#{value}"
-      end
-      path += "&#{usage.join('&')}"
-
-      if options_log
-        log = []
-        options_log.each_pair do |key, value|
-          escaped_key = CGI.escape "[log][#{key}]"
-          log << "#{escaped_key}=#{CGI.escape(value)}"
-        end
-        path += "&#{log.join('&')}"
-      end
 
       uri = URI.parse("http://#{host}#{path}")
       http_response = Net::HTTP.get_response(uri)
