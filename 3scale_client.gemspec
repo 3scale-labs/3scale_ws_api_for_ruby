@@ -2,10 +2,10 @@
 
 Gem::Specification.new do |s|
   s.name = %q{3scale_client}
-  s.version = "2.2.10"
+  s.version = "2.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Adam Cigánek", "Tiago Macedo"]
+  s.authors = ["Adam Cigánek", "Tiago Macedo", "Joaquin Rivera Padron (joahking)"]
   s.description = %q{Ruby client for 3scale platform. 3scale is an API Infrastructure service which handles API Keys, Rate Limiting, Analytics, Billing Payments and Developer Management. Includes a configurable API dashboard and developer portal CMS. More information at http://www.3scale.net/ or http://support.3scale.net/.
 }
   s.email = %q{adam@3scale.net tiago@3scale.net}
