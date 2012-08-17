@@ -21,7 +21,7 @@ and do a bundle install.
 
 If you are using Rails' config.gems, put this into your config/environment.rb
 
-  config.gem '3scale_client
+  config.gem '3scale_client'
 
 Otherwise, require the gem in whatever way is natural to your framework of choice.
 
@@ -32,6 +32,36 @@ First, create an instance of the client, giving it your provider API key:
   client = ThreeScale::Client.new(:provider_key => "your provider key")
 
 Because the object is stateless, you can create just one and store it globally.
+
+==== Authrep
+
+Authrep is a 'one-shot' operation to authorize an application and report the associated transaction at the same time.
+The main difference between this call and the regular authorize call is that usage will be reported if the authorization is successful. Read more about authrep at the [active docs page on the 3scale's support site](https://support.3scale.net/reference/activedocs#operation/66)
+
+You can make request to this backend operation like this:
+
+  response = client.authrep(:app_id => "the app id", :app_key => "the app key")
+
+Then call the +success?+ method on the returned object to see if the authorization was
+successful.
+
+  if response.success?
+    # All fine, the usage will be reported automatically. Proceeed.
+  else
+    # Something's wrong with this application.
+  end
+
+The example is using the app_id authentication pattern, but you can also use other patterns.
+
+=== Using Varnish to speed up things
+
+3scale provides a [varnish module](https://github.com/3scale/libvmod-3scale) to cache the responses of its backend to help you achieve a close to zero perfomance. Go and install the module and [configure it the easy way](https://github.com/3scale/libvmod-3scale/blob/master/vcl/default_3scale_simple.vcl)
+
+When that's done all you have to do is to initialize your 3scale client pointing to the location of your varnish, by passing the host parameter to it, like this:
+
+  client = ThreeScale::Client.new(:provider_key => "your provider key", :host => "your.varnish.net:8080")
+
+that's it, your API should now be authorized and reported for you, and all that at full speed.
 
 === Authorize
 
