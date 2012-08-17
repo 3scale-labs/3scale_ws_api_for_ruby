@@ -52,7 +52,7 @@ module ThreeScale
     attr_reader :host
 
     # Authorize and report an application.
-    # TODO
+    # TODO (in the mean time read authorize comments or head over to https://support.3scale.net/reference/activedocs#operation/66 for details
     #
     def authrep(options)
       path = "/transactions/authrep.xml?provider_key=#{CGI.escape(provider_key)}"
