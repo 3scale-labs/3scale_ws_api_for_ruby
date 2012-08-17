@@ -25,6 +25,12 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert_equal 'su1.3scale.net', client.host
   end
 
+  def test_custom_host
+    client = ThreeScale::Client.new(:provider_key => '1234abcd', :host => "example.com")
+
+    assert_equal 'example.com', client.host
+  end
+
   def test_successful_authorize
     body = '<status>
               <authorized>true</authorized>
