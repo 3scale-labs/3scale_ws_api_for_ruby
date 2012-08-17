@@ -68,7 +68,7 @@ module ThreeScale
       usage = []
       options_usage.each_pair do |metric, value|
         escaped_metric = CGI.escape "[usage][#{metric}]"
-        usage << "#{escaped_metric}=#{value}"
+        usage << "#{escaped_metric}=#{CGI.escape(value.to_s)}"
       end
       path += "&#{usage.join('&')}"
 

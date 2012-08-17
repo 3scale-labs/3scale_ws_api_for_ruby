@@ -31,6 +31,35 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert_equal 'example.com', client.host
   end
 
+  def test_authrep_usage_is_encoded
+    assert_authrep_url_with_params "&%5Busage%5D%5Bmethod%5D=666"
+
+    @client.authrep({:usage => {:method=> 666}})
+  end
+
+  def test_authrep_usage_values_are_encoded
+    assert_authrep_url_with_params "&%5Busage%5D%5Bhits%5D=%230"
+
+    @client.authrep({:usage => {:hits => "#0"}})
+  end
+
+  def test_authrep_usage_defaults_to_hits_1
+    assert_authrep_url_with_params "&%5Busage%5D%5Bhits%5D=1"
+
+    @client.authrep({})
+  end
+
+  def test_authrep_supports_app_id_app_key_auth_mode
+    assert_authrep_url_with_params "&app_id=appid&app_key=appkey&%5Busage%5D%5Bhits%5D=1"
+
+    @client.authrep(:app_id => "appid", :app_key => "appkey")
+  end
+
+  #TODO these authrep tests
+  def test_authrep_supports_api_key_auth_mode; end
+  def test_authrep_log_is_encoded;end
+  def test_authrep_passes_all_params_to_backend;end
+
   def test_successful_authorize
     body = '<status>
               <authorized>true</authorized>
@@ -308,5 +337,25 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert_raise ThreeScale::ServerError do
       @client.report({:app_id => 'foo', :usage => {'hits' => 1}})
     end
+  end
+
+  private
+
+  #OPTIMIZE this tricky test helper relies on fakeweb catching the urls requested by the client
+  # it is brittle: it depends in the correct order or params in the url
+  #
+  def assert_authrep_url_with_params(str)
+    authrep_url = "http://#{@host}/transactions/authrep.xml?provider_key=#{@client.provider_key}"
+    params = str # unless str.scan(/log/)
+    params << "&%5Busage%5D%5Bhits%5D=1" unless params.scan(/usage.*hits/)
+    parsed_authrep_url = URI.parse(authrep_url + params)
+    # set to have the client working
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+            </status>'
+
+    # this is the actual assertion, if fakeweb raises the client is submiting with wrong params
+    FakeWeb.register_uri(:get, parsed_authrep_url, :status => ['200', 'OK'], :body => body)
   end
 end
