@@ -33,9 +33,9 @@ begin
     gemspec.description = <<END
 This gem allows to easily connect an application that provides a Web Service with the 3scale API Management System to authorize it's users and report the usage.
 END
-    gemspec.email    = 'adam@3scale.net'
+    gemspec.email    = 'support@3scale.net'
     gemspec.homepage = 'http://www.3scale.net'
-    gemspec.authors  = ['Adam Cigánek']
+    gemspec.authors  = ['Adam Cigánek', 'Joaquin Rivera Padron (joahking)']
 
     gemspec.add_dependency 'nokogiri'
   end
