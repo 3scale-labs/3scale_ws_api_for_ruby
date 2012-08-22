@@ -35,7 +35,7 @@ This gem allows to easily connect an application that provides a Web Service wit
 END
     gemspec.email    = 'support@3scale.net'
     gemspec.homepage = 'http://www.3scale.net'
-    gemspec.authors  = ['Adam Cigánek', 'Joaquin Rivera Padron (joahking)']
+    gemspec.authors  = ['Adam Cigánek', 'Tiago Macedo', 'Joaquin Rivera Padron (joahking)']
 
     gemspec.add_dependency 'nokogiri'
   end

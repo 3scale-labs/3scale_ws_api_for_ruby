@@ -55,7 +55,7 @@ The example is using the app_id authentication pattern, but you can also use oth
 
 === Using Varnish to speed up things
 
-3scale provides a [varnish module](https://github.com/3scale/libvmod-3scale) to cache the responses of its backend to help you achieve a close to zero perfomance. Go and install the module and [configure it the easy way](https://github.com/3scale/libvmod-3scale/blob/master/vcl/default_3scale_simple.vcl)
+3scale provides a [varnish module](https://github.com/3scale/libvmod-3scale) to cache the responses of its backend to help you achieve a close to zero latency. Go and install the module and [configure it the easy way](https://github.com/3scale/libvmod-3scale/blob/master/vcl/default_3scale_simple.vcl)
 
 When that's done all you have to do is to initialize your 3scale client pointing to the location of your varnish, by passing the host parameter to it, like this:
 
