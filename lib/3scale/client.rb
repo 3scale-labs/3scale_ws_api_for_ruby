@@ -51,6 +51,49 @@ module ThreeScale
     attr_reader :provider_key
     attr_reader :host
 
+    # Authorize and report an application.
+    # TODO (in the mean time read authorize comments or head over to https://support.3scale.net/reference/activedocs#operation/66 for details
+    #
+    def authrep(options)
+      path = "/transactions/authrep.xml?provider_key=#{CGI.escape(provider_key)}"
+
+      options_usage = options.delete :usage
+      options_log   = options.delete :log
+
+      options.each_pair do |param, value|
+        path += "&#{param}=#{CGI.escape(value.to_s)}"
+      end
+
+      options_usage ||= {:hits => 1}
+      usage = []
+      options_usage.each_pair do |metric, value|
+        escaped_metric = CGI.escape "[usage][#{metric}]"
+        usage << "#{escaped_metric}=#{CGI.escape(value.to_s)}"
+      end
+      path += "&#{usage.join('&')}"
+
+      if options_log
+        log = []
+        options_log.each_pair do |key, value|
+          escaped_key = CGI.escape "[log][#{key}]"
+          log << "#{escaped_key}=#{CGI.escape(value)}"
+        end
+        path += "&#{log.join('&')}"
+      end
+
+      uri = URI.parse("http://#{host}#{path}")
+      http_response = Net::HTTP.get_response(uri)
+
+      case http_response
+      when Net::HTTPSuccess,Net::HTTPConflict
+        build_authorize_response(http_response.body)
+      when Net::HTTPClientError
+        build_error_response(http_response.body)
+      else
+        raise ServerError.new(http_response)
+      end
+    end
+
     # Report transaction(s).
     #
     # == Parameters
