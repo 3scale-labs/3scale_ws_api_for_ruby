@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{3scale_client}
-  s.version = "2.3.1"
+  s.version = "2.3.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Adam Cigánek", "Tiago Macedo", "Joaquin Rivera Padron (joahking)"]
@@ -16,10 +16,12 @@ Gem::Specification.new do |s|
     ".gitignore",
      "3scale_client.gemspec",
      "Gemfile",
+     "Gemfile.lock",
      "LICENCE",
      "README.rdoc",
      "Rakefile",
      "VERSION",
+     "lib/3scale_client.rb",
      "lib/3scale/authorize_response.rb",
      "lib/3scale/client.rb",
      "lib/3scale/response.rb",
