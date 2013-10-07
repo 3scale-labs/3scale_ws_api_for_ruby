@@ -185,7 +185,7 @@ module ThreeScale
       path = "/transactions/authorize.xml" +
         "?provider_key=#{CGI.escape(provider_key)}" +
         "&app_id=#{CGI.escape(options[:app_id].to_s)}"
-      path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
+        path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
 
       uri = URI.parse("http://#{host}#{path}")
       http_response = Net::HTTP.get_response(uri)
@@ -234,7 +234,7 @@ module ThreeScale
       path = "/transactions/oauth_authorize.xml" +
         "?provider_key=#{CGI.escape(provider_key)}" +
         "&app_id=#{CGI.escape(options[:app_id].to_s)}"
-      path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
+        path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
       path += "&redirect_url=#{CGI.escape(options[:redirect_url])}" if options[:redirect_url]
 
       uri = URI.parse("http://#{host}#{path}")
@@ -298,8 +298,8 @@ module ThreeScale
       doc.css('usage_reports usage_report').each do |node|
         response.add_usage_report(:metric        => node['metric'].to_s.strip,
                                   :period        => node['period'].to_s.strip.to_sym,
-                                  :period_start  => node.at('period_start').content,
-                                  :period_end    => node.at('period_end').content,
+                                  :period_start  => node.at('period_start') ? node.at('period_start').content : '' ,
+                                  :period_end    => node.at('period_end') ? node.at('period_end').content : '',
                                   :current_value => node.at('current_value').content.to_i,
                                   :max_value     => node.at('max_value').content.to_i)
       end
