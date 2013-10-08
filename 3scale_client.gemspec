@@ -6,7 +6,7 @@ require '3scale/client/version'
 Gem::Specification.new do |spec|
   spec.name          = "3scale_client"
   spec.version       = ThreeScale::Client::VERSION
-  spec.authors       = ["Michal Cichra"] | ['Adam Cigánek', 'Tiago Macedo', 'Joaquin Rivera Padron (joahking)']
+  spec.authors       = ["Michal Cichra"] | ['Adam Cigánek', 'Tiago Macedo', 'Joaquin Rivera Padron (joahking)', 'Maria Pilar Guerra']
   spec.email         = ["support@3scale.net"]
   spec.description   = "This gem allows to easily connect an application that provides a Web Service with the 3scale API Management System to authorize it's users and report the usage."
   spec.summary       = 'Client for 3scale Web Service Management System API'
