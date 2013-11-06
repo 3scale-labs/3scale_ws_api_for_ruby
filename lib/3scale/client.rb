@@ -158,9 +158,10 @@ module ThreeScale
     #
     # Hash with options:
     #
-    #   app_id::  id of the application to authorize. This is required.
-    #   app_key:: secret key assigned to the application. Required only if application has
-    #             a key defined.
+    #   app_id::     id of the application to authorize. This is required.
+    #   app_key::    secret key assigned to the application. Required only if application has
+    #                a key defined.
+    #   service_id:: id of the service (required if you have more than one service)
     #
     # == Return
     #
@@ -186,6 +187,7 @@ module ThreeScale
         "?provider_key=#{CGI.escape(provider_key)}" +
         "&app_id=#{CGI.escape(options[:app_id].to_s)}"
         path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
+      path += "&service_id=#{CGI.escape(options[:service_id])}" if options[:service_id]
 
       uri = URI.parse("http://#{host}#{path}")
       http_response = Net::HTTP.get_response(uri)
@@ -207,6 +209,7 @@ module ThreeScale
     # Hash with options:
     #
     #   app_id::  id of the application to authorize. This is required.
+    #   service_id:: id of the service (required if you have more than one service)
     #
     # == Return
     #
@@ -235,6 +238,7 @@ module ThreeScale
         "?provider_key=#{CGI.escape(provider_key)}" +
         "&app_id=#{CGI.escape(options[:app_id].to_s)}"
         path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
+      path += "&service_id=#{CGI.escape(options[:service_id])}" if options[:service_id]
       path += "&redirect_url=#{CGI.escape(options[:redirect_url])}" if options[:redirect_url]
 
       uri = URI.parse("http://#{host}#{path}")
