@@ -10,6 +10,7 @@ module ThreeScale
     attr_accessor :plan
     attr_accessor :app_key
     attr_accessor :redirect_url
+    attr_accessor :service_id
 
     class UsageReport
       attr_reader :metric
