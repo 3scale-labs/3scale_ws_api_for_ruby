@@ -56,7 +56,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   end
 
   def test_authrep_supports_service_id
-    assert_authrep_url_with_params "&service_id=serviceid&app_id=appid&app_key=appkey&%5Busage%5D%5Bhits%5D=1"
+    assert_authrep_url_with_params "&%5Busage%5D%5Bhits%5D=1&service_id=serviceid"
 
     @client.authrep(:service_id => "serviceid")
   end
