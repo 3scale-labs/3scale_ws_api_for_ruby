@@ -55,8 +55,8 @@ The example is using the app_id authentication pattern, but you can also use oth
 
 ==== A rails example
 
-```ruby
 
+```ruby
 class ApplicationController < ActionController
   #Call the authenticate method on each request on the API
   before_filter :authenticate
