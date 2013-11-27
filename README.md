@@ -7,15 +7,12 @@
 
 ### Tutorials
 Plugin Setup: https://support.3scale.net/howtos/api-configuration/plugin-setup  
-
 Rate Limiting: https://support.3scale.net/howtos/basics/provision-rate-limits  
-
 Analytics Setup: https://support.3scale.net/quickstarts/3scale-api-analytics  
 
 ## Installation
 
 This library is distributed as a gem:
-
 ```sh
 gem install 3scale_client
 ```
@@ -27,7 +24,6 @@ If you are using Bundler, please add this to your Gemfile:
 ```ruby
 gem '3scale_client'
 ```
-
 and do a bundle install.
 
 If you are using Rails' config.gems, put this into your config/environment.rb
@@ -35,7 +31,6 @@ If you are using Rails' config.gems, put this into your config/environment.rb
 ```ruby
 config.gem '3scale_client'
 ```
-
 Otherwise, require the gem in whatever way is natural to your framework of choice.
 
 ## Usage
@@ -45,7 +40,6 @@ First, create an instance of the client, giving it your provider API key:
 ```ruby
 client = ThreeScale::Client.new(:provider_key => "your provider key")
 ```
-
 Because the object is stateless, you can create just one and store it globally.
 
 ### Authrep
@@ -55,7 +49,9 @@ The main difference between this call and the regular authorize call is that usa
 
 You can make request to this backend operation like this:
 
-    response = client.authrep(:app_id => "the app id", :app_key => "the app key")
+```ruby
+response = client.authrep(:app_id => "the app id", :app_key => "the app key")
+```
 
 Then call the +success?+ method on the returned object to see if the authorization was
 successful.
@@ -88,7 +84,6 @@ class ApplicationController < ActionController
   # "system name" that you specifed on the metric/method to pass in as the key to the usage hash. 
   # The key needs to be a symbol. 
   # A way to pass the metric is to add a parameter that will pass the name of the metric/method along
-          
   def authenticate
     response = create_client.authrep(:app_id => params["app_id"], 
                                      :app_key => params["app_key"],
