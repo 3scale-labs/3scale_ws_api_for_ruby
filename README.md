@@ -62,6 +62,8 @@ The example is using the app_id authentication pattern, but you can also use oth
 
 ==== A rails example
 
+
+```ruby
     class ApplicationController < ActionController
       # Call the authenticate method on each request to the API
       before_filter :authenticate
@@ -91,6 +93,7 @@ The example is using the app_id authentication pattern, but you can also use oth
         end
       end
     end
+```
 
 === Using Varnish to speed up things
 
@@ -200,3 +203,9 @@ human readable error description:
 
   response.error_code    # "provider_key_invalid"
   response.error_message # "provider key \"foo\" is invalid"
+  
+  
+
+```ruby
+  puts "hello"
+```
