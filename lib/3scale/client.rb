@@ -183,11 +183,7 @@ module ThreeScale
     #   end
     #
     def authorize(options)
-      path = "/transactions/authorize.xml" +
-        "?provider_key=#{CGI.escape(provider_key)}" +
-        "&app_id=#{CGI.escape(options[:app_id].to_s)}"
-        path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
-      path += "&service_id=#{CGI.escape(options[:service_id])}" if options[:service_id]
+      path = "/transactions/authorize.xml" + options_to_params(options, ALL_PARAMS)
 
       uri = URI.parse("http://#{host}#{path}")
       http_response = Net::HTTP.get_response(uri)
@@ -234,12 +230,7 @@ module ThreeScale
     #   end
     #
     def oauth_authorize(options)
-      path = "/transactions/oauth_authorize.xml" +
-        "?provider_key=#{CGI.escape(provider_key)}" +
-        "&app_id=#{CGI.escape(options[:app_id].to_s)}"
-        path += "&app_key=#{CGI.escape(options[:app_key])}" if options[:app_key]
-      path += "&service_id=#{CGI.escape(options[:service_id])}" if options[:service_id]
-      path += "&redirect_url=#{CGI.escape(options[:redirect_url])}" if options[:redirect_url]
+      path = "/transactions/oauth_authorize.xml" + options_to_params(options, OAUTH_PARAMS)
 
       uri = URI.parse("http://#{host}#{path}")
       http_response = Net::HTTP.get_response(uri)
@@ -255,6 +246,23 @@ module ThreeScale
     end
 
     private
+
+    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url]
+    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url]
+
+    def options_to_params(options, allowed_keys)
+      params = { :provider_key  => provider_key }
+
+      allowed_keys.each do |key|
+        params[key] = options[key] if options.has_key?(key)
+      end
+
+      tuples = params.map do |key, value|
+        "#{key}=#{CGI.escape(value.to_s)}"
+      end
+
+      '?' + tuples.join('&')
+    end
 
     def encode_transactions(transactions)
       result = {}

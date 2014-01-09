@@ -121,6 +121,18 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert response.success?
   end
 
+  def test_successful_authorize_with_user_key
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+            </status>'
+
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&user_key=foo", :status => ['200', 'OK'], :body => body)
+
+    response = @client.authorize(:user_key => 'foo')
+    assert response.success?
+  end
+
   def test_authorize_with_exceeded_usage_limits
     body = '<status>
               <authorized>false</authorized>
