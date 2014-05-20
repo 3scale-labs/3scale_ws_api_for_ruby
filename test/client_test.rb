@@ -62,6 +62,21 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     client(:secure => true).authrep({})
   end
 
+  def test_not_keepalive
+    assert !@client.http.active?
+  end
+
+  def test_secure_keepalive_authrep
+    @client = client(:secure => true, :keepalive => true)
+    assert @client.http.active?
+
+    2.times do
+      assert_secure_authrep_url_with_params
+      @client.authrep({})
+    end
+    assert @client.http.active?
+  end
+
   def test_authrep_usage_values_are_encoded
     assert_authrep_url_with_params "&%5Busage%5D%5Bhits%5D=%230"
 

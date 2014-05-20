@@ -51,6 +51,8 @@ module ThreeScale
 
       @http = Net::HTTP.new(@host, @secure ? 443 : 80)
       @http.use_ssl = @secure
+
+      @http.start if options[:keepalive]
     end
 
     attr_reader :provider_key, :host, :http
