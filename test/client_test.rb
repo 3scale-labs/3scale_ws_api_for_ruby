@@ -1,6 +1,6 @@
 require 'test/unit'
 require 'fakeweb'
-require 'mocha'
+require 'mocha/setup'
 
 require '3scale/client'
 
@@ -62,9 +62,9 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   end
 
   #TODO these authrep tests
-  def test_authrep_supports_api_key_auth_mode; end
-  def test_authrep_log_is_encoded;end
-  def test_authrep_passes_all_params_to_backend;end
+  # def test_authrep_supports_api_key_auth_mode; end
+  # def test_authrep_log_is_encoded;end
+  # def test_authrep_passes_all_params_to_backend;end
 
   def test_successful_authorize
     body = '<status>
@@ -283,7 +283,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert_equal 'application with id="foo" was not found', response.error_message
   end
 
-  def test_authorize_with_server_error
+  def test_oauth_authorize_with_server_error
     FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['500', 'Internal Server Error'], :body => 'OMG! WTF!')
 
     assert_raise ThreeScale::ServerError do
