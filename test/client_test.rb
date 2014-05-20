@@ -5,11 +5,16 @@ require 'mocha/setup'
 require '3scale/client'
 
 class ThreeScale::ClientTest < Test::Unit::TestCase
+
+  def client(options = {})
+    ThreeScale::Client.new({:provider_key => '1234abcd'}.merge(options))
+  end
+
   def setup
     FakeWeb.clean_registry
     FakeWeb.allow_net_connect = false
 
-    @client = ThreeScale::Client.new(:provider_key => '1234abcd')
+    @client = client
     @host   = ThreeScale::Client::DEFAULT_HOST
   end
 
@@ -31,10 +36,31 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     assert_equal 'example.com', client.host
   end
 
+  def test_default_protocol
+    client = ThreeScale::Client.new(:provider_key => 'test', :secure => false)
+    assert_equal 'http', client.protocol
+  end
+
+  def test_insecure_protocol
+    client = ThreeScale::Client.new(:provider_key => 'test', :secure => false)
+    assert_equal 'http', client.protocol
+  end
+
+  def test_secure_protocol
+    client = ThreeScale::Client.new(:provider_key => 'test', :secure => true)
+
+    assert_equal 'https', client.protocol
+  end
+
   def test_authrep_usage_is_encoded
     assert_authrep_url_with_params "&%5Busage%5D%5Bmethod%5D=666"
 
     @client.authrep({:usage => {:method=> 666}})
+  end
+
+  def test_secure_authrep
+    assert_secure_authrep_url_with_params
+    client(:secure => true).authrep({})
   end
 
   def test_authrep_usage_values_are_encoded
@@ -362,8 +388,8 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   #OPTIMIZE this tricky test helper relies on fakeweb catching the urls requested by the client
   # it is brittle: it depends in the correct order or params in the url
   #
-  def assert_authrep_url_with_params(str)
-    authrep_url = "http://#{@host}/transactions/authrep.xml?provider_key=#{@client.provider_key}"
+  def assert_authrep_url_with_params(str, protocol = 'http')
+    authrep_url = "#{protocol}://#{@host}/transactions/authrep.xml?provider_key=#{@client.provider_key}"
     params = str # unless str.scan(/log/)
     params << "&%5Busage%5D%5Bhits%5D=1" unless params.scan(/usage.*hits/)
     parsed_authrep_url = URI.parse(authrep_url + params)
@@ -375,5 +401,9 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
 
     # this is the actual assertion, if fakeweb raises the client is submiting with wrong params
     FakeWeb.register_uri(:get, parsed_authrep_url, :status => ['200', 'OK'], :body => body)
+  end
+
+  def assert_secure_authrep_url_with_params(str = '&%5Busage%5D%5Bhits%5D=1')
+    assert_authrep_url_with_params(str, 'https')
   end
 end

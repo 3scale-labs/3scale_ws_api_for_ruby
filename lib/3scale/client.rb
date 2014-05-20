@@ -46,10 +46,12 @@ module ThreeScale
 
       @provider_key = options[:provider_key]
       @host = options[:host] || DEFAULT_HOST
+      @protocol = options[:secure] ? 'https' : 'http'
+
+      require "net/#{@protocol}"
     end
 
-    attr_reader :provider_key
-    attr_reader :host
+    attr_reader :provider_key, :host, :protocol
 
     # Authorize and report an application.
     # TODO (in the mean time read authorize comments or head over to https://support.3scale.net/reference/activedocs#operation/66 for details
@@ -81,7 +83,7 @@ module ThreeScale
         path += "&#{log.join('&')}"
       end
 
-      uri = URI.parse("http://#{host}#{path}")
+      uri = url(path)
       http_response = Net::HTTP.get_response(uri)
 
       case http_response
@@ -139,7 +141,7 @@ module ThreeScale
       payload = encode_transactions(transactions)
       payload['provider_key'] = CGI.escape(provider_key)
 
-      uri = URI.parse("http://#{host}/transactions.xml")
+      uri = url('/transactions.xml')
       http_response = Net::HTTP.post_form(uri, payload)
 
       case http_response
@@ -185,7 +187,7 @@ module ThreeScale
     def authorize(options)
       path = "/transactions/authorize.xml" + options_to_params(options, ALL_PARAMS)
 
-      uri = URI.parse("http://#{host}#{path}")
+      uri = url(path)
       http_response = Net::HTTP.get_response(uri)
 
       case http_response
@@ -232,7 +234,7 @@ module ThreeScale
     def oauth_authorize(options)
       path = "/transactions/oauth_authorize.xml" + options_to_params(options, OAUTH_PARAMS)
 
-      uri = URI.parse("http://#{host}#{path}")
+      uri = url(path)
       http_response = Net::HTTP.get_response(uri)
 
       case http_response
@@ -246,6 +248,10 @@ module ThreeScale
     end
 
     private
+
+    def url(path)
+      URI.parse("#{@protocol}://#{@host}#{path}")
+    end
 
     OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url]
     ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url]

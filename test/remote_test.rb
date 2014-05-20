@@ -30,6 +30,11 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
       end
     end
 
+    def test_successful_secure_authrep
+      @client = ThreeScale::Client.new(:provider_key => @provider_key, :secure => true)
+      test_successful_authrep
+    end
+
 
     def test_failed_authrep
       response = @client.authrep(:app_id => 'invalid-id')
