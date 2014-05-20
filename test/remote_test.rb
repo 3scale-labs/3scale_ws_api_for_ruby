@@ -21,6 +21,14 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
       end
     end
 
+    def test_app_ids_are_passed
+      assert @app_ids.length > 0, 'expected TEST_3SCALE_APP_IDS to contain app ids'
+    end
+
+    def test_app_keys_are_passed
+      assert @app_keys.length > 0, 'expected TEST_3SCALE_APP_KEYS to contain app keys'
+    end
+
     def test_successful_authrep
       @app_keys.each do |app_key|
         response = @client.authrep(:app_id => @app_ids[0], :app_key => app_key,
