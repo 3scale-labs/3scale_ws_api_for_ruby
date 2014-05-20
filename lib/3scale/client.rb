@@ -2,6 +2,7 @@ require 'cgi'
 require 'uri'
 require 'net/http'
 require 'nokogiri'
+require '3scale/client/http_client'
 
 require '3scale/response'
 require '3scale/authorize_response'
@@ -45,14 +46,10 @@ module ThreeScale
       end
 
       @provider_key = options[:provider_key]
-      @host = options[:host] || DEFAULT_HOST
 
-      @secure = !!options[:secure]
+      @host = options[:host] ||= DEFAULT_HOST
 
-      @http = Net::HTTP.new(@host, @secure ? 443 : 80)
-      @http.use_ssl = @secure
-
-      @http.start if options[:keepalive]
+      @http = ThreeScale::Client::HTTPClient.new(options)
     end
 
     attr_reader :provider_key, :host, :http
@@ -144,7 +141,7 @@ module ThreeScale
       payload = encode_transactions(transactions)
       payload['provider_key'] = CGI.escape(provider_key)
 
-      http_response = @http.post('/transactions.xml', URI.encode_www_form(payload))
+      http_response = @http.post('/transactions.xml', payload)
 
       case http_response
       when Net::HTTPSuccess

@@ -62,21 +62,6 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     client(:secure => true).authrep({})
   end
 
-  def test_not_keepalive
-    assert !@client.http.active?
-  end
-
-  def test_secure_keepalive_authrep
-    @client = client(:secure => true, :keepalive => true)
-    assert @client.http.active?
-
-    2.times do
-      assert_secure_authrep_url_with_params
-      @client.authrep({})
-    end
-    assert @client.http.active?
-  end
-
   def test_authrep_usage_values_are_encoded
     assert_authrep_url_with_params "&%5Busage%5D%5Bhits%5D=%230"
 
@@ -363,7 +348,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     }
 
     @client.http.expects(:post)
-      .with('/transactions.xml', URI.encode_www_form(payload))
+      .with('/transactions.xml', payload)
       .returns(http_response)
 
     @client.report({:app_id    => 'foo',
@@ -422,5 +407,11 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
 
   def assert_secure_authrep_url_with_params(str = '&%5Busage%5D%5Bhits%5D=1')
     assert_authrep_url_with_params(str, 'https')
+  end
+end
+
+class ThreeScale::PersistentClientTest < ThreeScale::ClientTest
+  def client(options = {})
+    ThreeScale::Client.new({:provider_key => '1234abcd', :persistent => true}.merge(options))
   end
 end
