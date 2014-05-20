@@ -46,12 +46,14 @@ module ThreeScale
 
       @provider_key = options[:provider_key]
       @host = options[:host] || DEFAULT_HOST
-      @protocol = options[:secure] ? 'https' : 'http'
 
-      require "net/#{@protocol}"
+      @secure = !!options[:secure]
+
+      @http = Net::HTTP.new(@host, @secure ? 443 : 80)
+      @http.use_ssl = @secure
     end
 
-    attr_reader :provider_key, :host, :protocol
+    attr_reader :provider_key, :host, :http
 
     # Authorize and report an application.
     # TODO (in the mean time read authorize comments or head over to https://support.3scale.net/reference/activedocs#operation/66 for details
@@ -83,8 +85,7 @@ module ThreeScale
         path += "&#{log.join('&')}"
       end
 
-      uri = url(path)
-      http_response = Net::HTTP.get_response(uri)
+      http_response = @http.get(path)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -141,8 +142,7 @@ module ThreeScale
       payload = encode_transactions(transactions)
       payload['provider_key'] = CGI.escape(provider_key)
 
-      uri = url('/transactions.xml')
-      http_response = Net::HTTP.post_form(uri, payload)
+      http_response = @http.post('/transactions.xml', URI.encode_www_form(payload))
 
       case http_response
       when Net::HTTPSuccess
@@ -187,8 +187,7 @@ module ThreeScale
     def authorize(options)
       path = "/transactions/authorize.xml" + options_to_params(options, ALL_PARAMS)
 
-      uri = url(path)
-      http_response = Net::HTTP.get_response(uri)
+      http_response = @http.get(path)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -234,8 +233,7 @@ module ThreeScale
     def oauth_authorize(options)
       path = "/transactions/oauth_authorize.xml" + options_to_params(options, OAUTH_PARAMS)
 
-      uri = url(path)
-      http_response = Net::HTTP.get_response(uri)
+      http_response = @http.get(path)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -248,10 +246,6 @@ module ThreeScale
     end
 
     private
-
-    def url(path)
-      URI.parse("#{@protocol}://#{@host}#{path}")
-    end
 
     OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url]
     ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url]

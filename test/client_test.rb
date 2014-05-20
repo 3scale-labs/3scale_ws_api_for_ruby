@@ -37,19 +37,18 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   end
 
   def test_default_protocol
-    client = ThreeScale::Client.new(:provider_key => 'test', :secure => false)
-    assert_equal 'http', client.protocol
+    client = ThreeScale::Client.new(:provider_key => 'test')
+    assert_equal false, client.http.use_ssl?
   end
 
   def test_insecure_protocol
     client = ThreeScale::Client.new(:provider_key => 'test', :secure => false)
-    assert_equal 'http', client.protocol
+    assert_equal false, client.http.use_ssl?
   end
 
   def test_secure_protocol
     client = ThreeScale::Client.new(:provider_key => 'test', :secure => true)
-
-    assert_equal 'https', client.protocol
+    assert_equal true, client.http.use_ssl?
   end
 
   def test_authrep_usage_is_encoded
@@ -338,16 +337,19 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     http_response = stub
     Net::HTTPSuccess.stubs(:===).with(http_response).returns(true)
 
-    Net::HTTP.expects(:post_form).
-      with(anything,
-           'provider_key'                 => '1234abcd',
-           'transactions[0][app_id]'      => 'foo',
-           'transactions[0][usage][hits]' => '1',
-           'transactions[0][timestamp]'   => CGI.escape('2010-04-27 15:42:17 0200'),
-           'transactions[1][app_id]'      => 'bar',
-           'transactions[1][usage][hits]' => '1',
-           'transactions[1][timestamp]'   => CGI.escape('2010-04-27 15:55:12 0200')).
-      returns(http_response)
+    payload = {
+        'transactions[0][app_id]'      => 'foo',
+        'transactions[0][timestamp]'   => CGI.escape('2010-04-27 15:42:17 0200'),
+        'transactions[0][usage][hits]' => '1',
+        'transactions[1][app_id]'      => 'bar',
+        'transactions[1][timestamp]'   => CGI.escape('2010-04-27 15:55:12 0200'),
+        'transactions[1][usage][hits]' => '1',
+        'provider_key'                 => '1234abcd'
+    }
+
+    @client.http.expects(:post)
+      .with('/transactions.xml', URI.encode_www_form(payload))
+      .returns(http_response)
 
     @client.report({:app_id    => 'foo',
                     :usage     => {'hits' => 1},
