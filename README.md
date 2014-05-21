@@ -42,6 +42,25 @@ client = ThreeScale::Client.new(:provider_key => "your provider key")
 ```
 Because the object is stateless, you can create just one and store it globally.
 
+
+### SSL and Persistence
+
+Starting with version 2.4.0 you can use two more options: `:secure` and `:persistent` like:
+
+```ruby
+client = ThreeScale::Client.new(:provider_key => '...', :secure => true, :persistent => true)
+```
+
+#### :secure
+
+Enabling secure will force all traffic going through HTTPS.
+Because estabilishing SSL/TLS for every call is expensive, there is `:persistent`.
+
+#### :persistent
+
+Enabling persistent will use HTTP Keep-Alive to keep open connection to our servers.
+This option requires installing gem `net-http-persistent`.
+
 ### Authrep
 
 Authrep is a 'one-shot' operation to authorize an application and report the associated transaction at the same time.
