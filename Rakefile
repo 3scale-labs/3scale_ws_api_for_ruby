@@ -9,12 +9,16 @@ require 'rake/testtask'
 require 'rdoc/task'
 
 desc 'Default: run unit tests.'
-task :default => :test
+task :default => %w[test benchmark]
 
 desc 'Run unit tests.'
 Rake::TestTask.new(:test) do |t|
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
+end
+
+task :benchmark do
+  system 'ruby', '-Ilib', 'test/benchmark.rb'
 end
 
 desc 'Generate documentation.'

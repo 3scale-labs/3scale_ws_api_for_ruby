@@ -2,6 +2,7 @@ require 'cgi'
 require 'uri'
 require 'net/http'
 require 'nokogiri'
+require '3scale/client/http_client'
 
 require '3scale/response'
 require '3scale/authorize_response'
@@ -45,11 +46,13 @@ module ThreeScale
       end
 
       @provider_key = options[:provider_key]
-      @host = options[:host] || DEFAULT_HOST
+
+      @host = options[:host] ||= DEFAULT_HOST
+
+      @http = ThreeScale::Client::HTTPClient.new(options)
     end
 
-    attr_reader :provider_key
-    attr_reader :host
+    attr_reader :provider_key, :host, :http
 
     # Authorize and report an application.
     # TODO (in the mean time read authorize comments or head over to https://support.3scale.net/reference/activedocs#operation/66 for details
@@ -81,8 +84,7 @@ module ThreeScale
         path += "&#{log.join('&')}"
       end
 
-      uri = URI.parse("http://#{host}#{path}")
-      http_response = Net::HTTP.get_response(uri)
+      http_response = @http.get(path)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -139,8 +141,7 @@ module ThreeScale
       payload = encode_transactions(transactions)
       payload['provider_key'] = CGI.escape(provider_key)
 
-      uri = URI.parse("http://#{host}/transactions.xml")
-      http_response = Net::HTTP.post_form(uri, payload)
+      http_response = @http.post('/transactions.xml', payload)
 
       case http_response
       when Net::HTTPSuccess
@@ -185,8 +186,7 @@ module ThreeScale
     def authorize(options)
       path = "/transactions/authorize.xml" + options_to_params(options, ALL_PARAMS)
 
-      uri = URI.parse("http://#{host}#{path}")
-      http_response = Net::HTTP.get_response(uri)
+      http_response = @http.get(path)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -232,8 +232,7 @@ module ThreeScale
     def oauth_authorize(options)
       path = "/transactions/oauth_authorize.xml" + options_to_params(options, OAUTH_PARAMS)
 
-      uri = URI.parse("http://#{host}#{path}")
-      http_response = Net::HTTP.get_response(uri)
+      http_response = @http.get(path)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
