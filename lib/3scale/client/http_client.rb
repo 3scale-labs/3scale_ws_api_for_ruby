@@ -33,6 +33,7 @@ module ThreeScale
         def get(path)
           uri = full_uri(path)
           get = Net::HTTP::Get.new(uri.request_uri)
+          get["X-3scale-user-client"] = "plugin-ruby-v#{VERSION}"
           @http.request(uri, get)
         end
 
@@ -40,6 +41,7 @@ module ThreeScale
         def post(path, payload)
           uri = full_uri(path)
           post = Net::HTTP::Post.new uri.path
+          post["X-3scale-user-client"] = "plugin-ruby-v#{VERSION}"
           post.set_form_data(payload)
 
           @http.request(uri, post)
