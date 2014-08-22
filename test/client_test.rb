@@ -3,6 +3,7 @@ require 'fakeweb'
 require 'mocha/setup'
 
 require '3scale/client'
+require '3scale/client/version'
 
 class ThreeScale::ClientTest < Test::Unit::TestCase
 
@@ -338,18 +339,18 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     Net::HTTPSuccess.stubs(:===).with(http_response).returns(true)
 
     payload = {
-        'transactions[0][app_id]'      => 'foo',
-        'transactions[0][timestamp]'   => CGI.escape('2010-04-27 15:42:17 0200'),
-        'transactions[0][usage][hits]' => '1',
-        'transactions[1][app_id]'      => 'bar',
-        'transactions[1][timestamp]'   => CGI.escape('2010-04-27 15:55:12 0200'),
-        'transactions[1][usage][hits]' => '1',
-        'provider_key'                 => '1234abcd'
+      'transactions[0][app_id]'      => 'foo',
+      'transactions[0][timestamp]'   => CGI.escape('2010-04-27 15:42:17 0200'),
+      'transactions[0][usage][hits]' => '1',
+      'transactions[1][app_id]'      => 'bar',
+      'transactions[1][timestamp]'   => CGI.escape('2010-04-27 15:55:12 0200'),
+      'transactions[1][usage][hits]' => '1',
+      'provider_key'                 => '1234abcd'
     }
 
     @client.http.expects(:post)
-      .with('/transactions.xml', payload)
-      .returns(http_response)
+    .with('/transactions.xml', payload)
+    .returns(http_response)
 
     @client.report({:app_id    => 'foo',
                     :usage     => {'hits' => 1},
@@ -384,6 +385,39 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
       @client.report({:app_id => 'foo', :usage => {'hits' => 1}})
     end
   end
+
+  def test_authorize_client_header_sent
+    success_body = '<?xml version="1.0" encoding="UTF-8"?><status><authorized>true</authorized><plan>Default</plan><usage_reports><usage_report metric="hits" period="minute"><period_start>2014-08-22 09:06:00 +0000</period_start><period_end>2014-08-22 09:07:00 +0000</period_end><max_value>5</max_value><current_value>0</current_value></usage_report></usage_reports></status>'
+    version       = ThreeScale::Client::VERSION
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo",
+                         :status => ['200', 'OK'],
+                         :body   => success_body)
+
+    client = ThreeScale::Client.new(:provider_key => 'foo')
+    response = client.authorize(:app_id => 'foo')
+
+    assert response.success?
+    request = FakeWeb.last_request
+    binding.pry
+    assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Client"]
+  end
+
+  def test_report_client_header_sent
+    success_body = '<?xml version="1.0" encoding="UTF-8"?><status><authorized>true</authorized><plan>Default</plan><usage_reports><usage_report metric="hits" period="minute"><period_start>2014-08-22 09:06:00 +0000</period_start><period_end>2014-08-22 09:07:00 +0000</period_end><max_value>5</max_value><current_value>0</current_value></usage_report></usage_reports></status>'
+    version       = ThreeScale::Client::VERSION
+    FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
+                         :status => ['200', 'OK'],
+                         :body   => success_body)
+    client = ThreeScale::Client.new(:provider_key => 'foo')
+    response = client.report({:app_id => 'abc', :usage => {'hits' => 1}})
+
+    request = FakeWeb.last_request
+    binding.pry
+    assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Client"]
+  end
+
+  # def test_authrep_client_header_sent
+  # end
 
   private
 

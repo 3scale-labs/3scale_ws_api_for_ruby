@@ -68,7 +68,10 @@ module ThreeScale
         end
 
         def post(path, payload)
-          @http.post(path, URI.encode_www_form(payload))
+          headers = {
+            'X-3scale-user-client' => "plugin-ruby-v#{VERSION}"
+          }
+          @http.post(path, URI.encode_www_form(payload), headers)
         end
       end
     end
