@@ -398,7 +398,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
 
     assert response.success?
     request = FakeWeb.last_request
-    assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Client"]
+    assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Agent"]
     assert_equal "su1.3scale.net", request["host"]
 
   end
@@ -413,12 +413,23 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     response = client.report({:app_id => 'abc', :usage => {'hits' => 1}})
 
     request = FakeWeb.last_request
-    assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Client"]
+    assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Agent"]
     assert_equal "su1.3scale.net", request["host"]
   end
 
-  # def test_authrep_client_header_sent
-  # end
+  def test_authrep_client_header_sent
+    success_body = '<?xml version="1.0" encoding="UTF-8"?><status><authorized>true</authorized><plan>Default</plan><usage_reports><usage_report metric="hits" period="minute"><period_start>2014-08-22 09:06:00 +0000</period_start><period_end>2014-08-22 09:07:00 +0000</period_end><max_value>5</max_value><current_value>0</current_value></usage_report></usage_reports></status>'
+    version       = ThreeScale::Client::VERSION
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authrep.xml",
+                         :status => ['200', 'OK'],
+                         :body   => success_body)
+    client = ThreeScale::Client.new(:provider_key => 'foo')
+    client.authrep({:app_id => 'abc', :usage => {'hits' => 1}})
+
+    request = FakeWeb.last_request
+    assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Agent"]
+    assert_equal "su1.3scale.net", request["host"]
+  end
 
   private
 

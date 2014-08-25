@@ -5,7 +5,7 @@ module ThreeScale
     class HTTPClient
       extend Forwardable
       def_delegators :@http, :get, :post, :use_ssl?, :active?
-      USER_CLIENT_HEADER = ['X-3scale-User-Client', "plugin-ruby-v#{VERSION}"]
+      USER_CLIENT_HEADER = ['X-3scale-User-Agent', "plugin-ruby-v#{VERSION}"]
 
       def initialize(options)
 
