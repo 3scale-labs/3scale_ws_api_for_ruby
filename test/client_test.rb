@@ -3,7 +3,6 @@ require 'fakeweb'
 require 'mocha/setup'
 
 require '3scale/client'
-require '3scale/client/version'
 
 class ThreeScale::ClientTest < Test::Unit::TestCase
 
@@ -423,9 +422,11 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
     FakeWeb.register_uri(:get, "http://#{@host}/transactions/authrep.xml",
                          :status => ['200', 'OK'],
                          :body   => success_body)
-    client = ThreeScale::Client.new(:provider_key => 'foo')
-    client.authrep({:app_id => 'abc', :usage => {'hits' => 1}})
 
+    client = ThreeScale::Client.new(:provider_key => 'foo')
+    response = client.authrep({:app_id => 'abc', :usage => {'hits' => 1}})
+
+    assert response.success?
     request = FakeWeb.last_request
     assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Agent"]
     assert_equal "su1.3scale.net", request["host"]
