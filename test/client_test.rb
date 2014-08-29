@@ -424,7 +424,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
                          :body   => success_body)
 
     client = ThreeScale::Client.new(:provider_key => 'foo')
-    response = client.authrep({:app_id => 'abc', :usage => {'hits' => 1}})
+    response = client.authrep(:app_id => 'abc')
 
     assert response.success?
     request = FakeWeb.last_request
