@@ -419,7 +419,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   def test_authrep_client_header_sent
     success_body = '<?xml version="1.0" encoding="UTF-8"?><status><authorized>true</authorized><plan>Default</plan><usage_reports><usage_report metric="hits" period="minute"><period_start>2014-08-22 09:06:00 +0000</period_start><period_end>2014-08-22 09:07:00 +0000</period_end><max_value>5</max_value><current_value>0</current_value></usage_report></usage_reports></status>'
     version       = ThreeScale::Client::VERSION
-    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authrep.xml",
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authrep.xml?provider_key=foo&app_id=abc&%5Busage%5D%5Bhits%5D=1",
                          :status => ['200', 'OK'],
                          :body   => success_body)
 
