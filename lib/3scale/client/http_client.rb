@@ -1,4 +1,5 @@
 require 'forwardable'
+require '3scale/client/version'
 
 module ThreeScale
   class Client

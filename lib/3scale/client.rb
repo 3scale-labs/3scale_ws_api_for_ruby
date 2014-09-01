@@ -3,6 +3,7 @@ require 'uri'
 require 'net/http'
 require 'nokogiri'
 require '3scale/client/http_client'
+require '3scale/client/version'
 
 require '3scale/response'
 require '3scale/authorize_response'
