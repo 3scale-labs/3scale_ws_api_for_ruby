@@ -25,5 +25,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "mocha"
   spec.add_development_dependency "net-http-persistent"
   spec.add_development_dependency 'minitest'
+  spec.add_development_dependency 'rack'
   spec.add_dependency 'nokogiri'
 end
