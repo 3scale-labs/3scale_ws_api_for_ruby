@@ -1,8 +1,9 @@
+require 'minitest/autorun'
+
 require '3scale/client'
-require 'test/unit'
 
 if ENV['TEST_3SCALE_PROVIDER_KEY'] && ENV['TEST_3SCALE_APP_IDS'] && ENV['TEST_3SCALE_APP_KEYS']
-  class ThreeScale::PersistenceTest < Test::Unit::TestCase
+  class ThreeScale::PersistenceTest < MiniTest::Unit::TestCase
     def setup
       provider_key = ENV['TEST_3SCALE_PROVIDER_KEY']
 
