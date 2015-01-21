@@ -458,8 +458,16 @@ class ThreeScale::ClientTest < MiniTest::Unit::TestCase
   end
 end
 
-class ThreeScale::PersistentClientTest < ThreeScale::ClientTest
+class ThreeScale::NetHttpPersistentClientTest < ThreeScale::ClientTest
   def client(options = {})
+    ThreeScale::Client::HTTPClient.persistent_backend = ThreeScale::Client::HTTPClient::NetHttpPersistent
     ThreeScale::Client.new({:provider_key => '1234abcd', :persistent => true}.merge(options))
+  end
+end
+
+class ThreeScale::NetHttpKeepAliveClientTest < ThreeScale::NetHttpPersistentClientTest
+  def client(options = {})
+    ThreeScale::Client::HTTPClient.persistent_backend = ThreeScale::Client::HTTPClient::NetHttpKeepAlive
+    super
   end
 end
