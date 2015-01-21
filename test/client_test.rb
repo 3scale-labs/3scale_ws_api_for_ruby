@@ -1,10 +1,11 @@
-require 'test/unit'
+require 'minitest/autorun'
+
 require 'fakeweb'
 require 'mocha/setup'
 
 require '3scale/client'
 
-class ThreeScale::ClientTest < Test::Unit::TestCase
+class ThreeScale::ClientTest < MiniTest::Unit::TestCase
 
   def client(options = {})
     ThreeScale::Client.new({:provider_key => '1234abcd'}.merge(options))
@@ -19,7 +20,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   end
 
   def test_raises_exception_if_provider_key_is_missing
-    assert_raise ArgumentError do
+    assert_raises ArgumentError do
       ThreeScale::Client.new({})
     end
   end
@@ -206,7 +207,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   def test_authorize_with_server_error
     FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['500', 'Internal Server Error'], :body => 'OMG! WTF!')
 
-    assert_raise ThreeScale::ServerError do
+    assert_raises ThreeScale::ServerError do
       @client.authorize(:app_id => 'foo')
     end
   end
@@ -311,13 +312,13 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
   def test_oauth_authorize_with_server_error
     FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&app_id=foo", :status => ['500', 'Internal Server Error'], :body => 'OMG! WTF!')
 
-    assert_raise ThreeScale::ServerError do
+    assert_raises ThreeScale::ServerError do
       @client.oauth_authorize(:app_id => 'foo')
     end
   end
 
   def test_report_raises_an_exception_if_no_transactions_given
-    assert_raise ArgumentError do
+    assert_raises ArgumentError do
       @client.report
     end
   end
@@ -380,7 +381,7 @@ class ThreeScale::ClientTest < Test::Unit::TestCase
                          :status => ['500', 'Internal Server Error'],
                          :body   => 'OMG! WTF!')
 
-    assert_raise ThreeScale::ServerError do
+    assert_raises ThreeScale::ServerError do
       @client.report({:app_id => 'foo', :usage => {'hits' => 1}})
     end
   end

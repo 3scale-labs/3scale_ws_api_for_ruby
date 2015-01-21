@@ -1,10 +1,10 @@
-require 'test/unit'
+require 'minitest/autorun'
 require '3scale/client'
 
 if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
    ENV['TEST_3SCALE_APP_IDS']      &&
    ENV['TEST_3SCALE_APP_KEYS']
-  class ThreeScale::RemoteTest < Test::Unit::TestCase
+  class ThreeScale::RemoteTest < MiniTest::Unit::TestCase
     def setup
       @provider_key = ENV['TEST_3SCALE_PROVIDER_KEY']
 
