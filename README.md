@@ -6,9 +6,9 @@
 3scale is an API Infrastructure service which handles API Keys, Rate Limiting, Analytics, Billing Payments and Developer Management. Includes a configurable API dashboard and developer portal CMS. More product stuff at http://www.3scale.net/, support information at http://support.3scale.net/.
 
 ### Tutorials
-Plugin Setup: https://support.3scale.net/howtos/api-configuration/plugin-setup  
-Rate Limiting: https://support.3scale.net/howtos/basics/provision-rate-limits  
-Analytics Setup: https://support.3scale.net/quickstarts/3scale-api-analytics  
+Plugin Setup: https://support.3scale.net/howtos/api-configuration/plugin-setup
+Rate Limiting: https://support.3scale.net/howtos/basics/provision-rate-limits
+Analytics Setup: https://support.3scale.net/quickstarts/3scale-api-analytics
 
 ## Installation
 
@@ -252,5 +252,13 @@ human readable error description:
 ```ruby
 response.error_code    # "provider_key_invalid"
 response.error_message # "provider key \"foo\" is invalid"
-```  
-  
+```
+
+
+## Rack Middleware
+
+You can use our Rack middleware to automatically authenticate your Rack applications.
+
+```ruby
+use ThreeScale::Middleware, provider_key, :user_key # or :app_id
+```
