@@ -106,7 +106,7 @@ class ApplicationController < ActionController
   def authenticate
     response = create_client.authrep(:app_id => params["app_id"], 
                                      :app_key => params["app_key"],
-                                     :usage => { params[:metric].to_sym => 1 }
+                                     :usage => { params[:metric].to_sym => 1 })
     if response.success?
       return true
       # All fine, the usage will be reported automatically. Proceeed.
