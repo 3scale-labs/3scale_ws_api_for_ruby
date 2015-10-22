@@ -260,5 +260,6 @@ response.error_message # "provider key \"foo\" is invalid"
 You can use our Rack middleware to automatically authenticate your Rack applications.
 
 ```ruby
+require '3scale/middleware'
 use ThreeScale::Middleware, provider_key, :user_key # or :app_id
 ```
