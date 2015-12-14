@@ -1,5 +1,5 @@
 module ThreeScale
   class Client
-    VERSION = '2.5.0.pre1'
+    VERSION = '2.5.0'
   end
 end
