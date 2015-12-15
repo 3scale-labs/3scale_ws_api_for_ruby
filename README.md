@@ -119,18 +119,6 @@ class ApplicationController < ActionController
 end
 ```
 
-### Using Varnish to speed up things
-
-3scale provides a [varnish module](https://github.com/3scale/libvmod-3scale) to cache the responses of its backend to help you achieve a close to zero latency. Go and install the module and [configure it the easy way](https://github.com/3scale/libvmod-3scale/blob/master/vcl/default_3scale_simple.vcl)
-
-When that's done all you have to do is to initialize your 3scale client pointing to the location of your varnish, by passing the host parameter to it, like this:
-
-```ruby
-client = ThreeScale::Client.new(:provider_key => "your provider key", :host => "your.varnish.net:8080")
-```
-
-that's it, your API should now be authorized and reported for you, and all that at full speed.
-
 ### Authorize
 
 To authorize an application, call the +authorize+ method passing it the application's id and
