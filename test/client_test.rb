@@ -5,7 +5,7 @@ require 'mocha/setup'
 
 require '3scale/client'
 
-class ThreeScale::ClientTest < MiniTest::Unit::TestCase
+class ThreeScale::ClientTest < MiniTest::Test
 
   def client(options = {})
     ThreeScale::Client.new({:provider_key => '1234abcd'}.merge(options))

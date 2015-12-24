@@ -4,7 +4,7 @@ require '3scale/client'
 require 'mocha/setup'
 
 if ENV['TEST_3SCALE_PROVIDER_KEY'] && ENV['TEST_3SCALE_APP_IDS'] && ENV['TEST_3SCALE_APP_KEYS']
-  class ThreeScale::NetHttpPersistenceTest < MiniTest::Unit::TestCase
+  class ThreeScale::NetHttpPersistenceTest < MiniTest::Test
     def setup
       ThreeScale::Client::HTTPClient.persistent_backend = ThreeScale::Client::HTTPClient::NetHttpPersistent
 
