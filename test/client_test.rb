@@ -342,6 +342,9 @@ class ThreeScale::ClientTest < MiniTest::Unit::TestCase
       'transactions[0][app_id]'      => 'foo',
       'transactions[0][timestamp]'   => CGI.escape('2010-04-27 15:42:17 0200'),
       'transactions[0][usage][hits]' => '1',
+      'transactions[0][log][request]'  => 'foo',
+      'transactions[0][log][response]' => 'bar',
+      'transactions[0][log][code]'   => '200',
       'transactions[1][app_id]'      => 'bar',
       'transactions[1][timestamp]'   => CGI.escape('2010-04-27 15:55:12 0200'),
       'transactions[1][usage][hits]' => '1',
@@ -354,7 +357,13 @@ class ThreeScale::ClientTest < MiniTest::Unit::TestCase
 
     @client.report({:app_id    => 'foo',
                     :usage     => {'hits' => 1},
-                    :timestamp => '2010-04-27 15:42:17 0200'},
+                    :timestamp => '2010-04-27 15:42:17 0200',
+                    :log       => {
+                      'request'  => 'foo',
+                      'response' => 'bar',
+                      'code'     => 200,
+                    }
+                   },
 
                    {:app_id    => 'bar',
                     :usage     => {'hits' => 1},
