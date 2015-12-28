@@ -275,6 +275,10 @@ module ThreeScale
         transaction[:usage].each do |name, value|
           append_encoded_value(result, index, [:usage, name], value)
         end
+
+        transaction.fetch(:log, {}).each do |name, value|
+          append_encoded_value(result, index, [:log, name], value)
+        end
       end
 
       result

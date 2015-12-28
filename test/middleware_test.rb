@@ -2,7 +2,7 @@ require 'minitest/autorun'
 require '3scale/middleware'
 require 'mocha/setup'
 
-class ThreeScale::MiddlewareTest < MiniTest::Unit::TestCase
+class ThreeScale::MiddlewareTest < MiniTest::Test
 
   def setup
     @app = ->(_env) {  [ 200, {}, ['']] }

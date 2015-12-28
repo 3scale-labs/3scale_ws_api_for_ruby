@@ -4,7 +4,7 @@ require '3scale/client'
 if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
    ENV['TEST_3SCALE_APP_IDS']      &&
    ENV['TEST_3SCALE_APP_KEYS']
-  class ThreeScale::RemoteTest < MiniTest::Unit::TestCase
+  class ThreeScale::RemoteTest < MiniTest::Test
     def setup
       @provider_key = ENV['TEST_3SCALE_PROVIDER_KEY']
 
@@ -82,7 +82,9 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
 
     def test_successful_report
       transactions = @app_ids.map do |app_id|
-        {:app_id => app_id, :usage => {'hits' => 1}}
+        {:app_id => app_id,
+         :usage => {'hits' => 1},
+         :log => {:request => "a/a", :response => "b/b", :code => 200 }}
       end
 
       response = @client.report(*transactions)
