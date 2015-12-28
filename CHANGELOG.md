@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 ### Added
 
+## [2.6.0] - 2015-12-28
+
+### Added
+- Include 'log' field in transactions reported with 'report' method
+
 ## [2.5.0] - 2015-12-14
 No changes. Stable release.
 
