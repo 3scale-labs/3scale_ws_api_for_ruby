@@ -268,24 +268,24 @@ module ThreeScale
       result = {}
 
       transactions.each_with_index do |transaction, index|
-        append_encoded_value(result, index, [:app_id],    transaction[:app_id])
-        append_encoded_value(result, index, [:timestamp], transaction[:timestamp])
-        append_encoded_value(result, index, [:client_ip], transaction[:client_ip])
+        append_value(result, index, [:app_id],    transaction[:app_id])
+        append_value(result, index, [:timestamp], transaction[:timestamp])
+        append_value(result, index, [:client_ip], transaction[:client_ip])
 
         transaction[:usage].each do |name, value|
-          append_encoded_value(result, index, [:usage, name], value)
+          append_value(result, index, [:usage, name], value)
         end
 
         transaction.fetch(:log, {}).each do |name, value|
-          append_encoded_value(result, index, [:log, name], value)
+          append_value(result, index, [:log, name], value)
         end
       end
 
       result
     end
 
-    def append_encoded_value(result, index, names, value)
-      result["transactions[#{index}][#{names.join('][')}]"] = CGI.escape(value.to_s) if value
+    def append_value(result, index, names, value)
+      result["transactions[#{index}][#{names.join('][')}]"] = value if value
     end
 
     def build_report_response
