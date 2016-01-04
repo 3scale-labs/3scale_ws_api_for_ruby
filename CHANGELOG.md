@@ -3,8 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased][unreleased]
 ### Fixed
-- Fixed double escaping of post parameters (https://github.com/3scale/3scale_ws_api_for_ruby/pull/24)
 ### Added
+
+## [2.6.1] - 2016-01-04
+### Fixed
+- Fixed double escaping of post parameters (https://github.com/3scale/3scale_ws_api_for_ruby/pull/24)
 
 ## [2.6.0] - 2015-12-28
 
