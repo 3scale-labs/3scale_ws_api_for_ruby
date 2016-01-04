@@ -335,25 +335,21 @@ class ThreeScale::ClientTest < MiniTest::Test
   end
 
   def test_report_encodes_transactions
-    http_response = stub
-    Net::HTTPSuccess.stubs(:===).with(http_response).returns(true)
-
     payload = {
       'transactions[0][app_id]'      => 'foo',
-      'transactions[0][timestamp]'   => CGI.escape('2010-04-27 15:42:17 0200'),
+      'transactions[0][timestamp]'   => '2010-04-27 15:42:17 0200',
       'transactions[0][usage][hits]' => '1',
       'transactions[0][log][request]'  => 'foo',
       'transactions[0][log][response]' => 'bar',
       'transactions[0][log][code]'   => '200',
       'transactions[1][app_id]'      => 'bar',
-      'transactions[1][timestamp]'   => CGI.escape('2010-04-27 15:55:12 0200'),
+      'transactions[1][timestamp]'   => Time.local(2010, 4, 27, 15, 00).to_s,
       'transactions[1][usage][hits]' => '1',
       'provider_key'                 => '1234abcd'
     }
 
-    @client.http.expects(:post)
-    .with('/transactions.xml', payload)
-    .returns(http_response)
+    FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
+                         :status => ['200', 'OK'])
 
     @client.report({:app_id    => 'foo',
                     :usage     => {'hits' => 1},
@@ -367,7 +363,11 @@ class ThreeScale::ClientTest < MiniTest::Test
 
                    {:app_id    => 'bar',
                     :usage     => {'hits' => 1},
-                    :timestamp => '2010-04-27 15:55:12 0200'})
+                    :timestamp => Time.local(2010, 4, 27, 15, 00)})
+
+    request = FakeWeb.last_request
+
+    assert_equal URI.encode_www_form(payload), request.body
   end
 
   def test_failed_report
