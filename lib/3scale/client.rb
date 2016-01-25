@@ -11,14 +11,15 @@ require '3scale/authorize_response'
 module ThreeScale
   Error = Class.new(RuntimeError)
 
-  class ServerError < Error
-    def initialize(response)
-      super('server error')
-      @response = response
-    end
-
+  class ConnectionError < Error
     attr_reader :response
+
+    def initialize(response)
+      super(ThreeScale::Client.http_response_to_msg response)
+    end
   end
+
+  ServerError = Class.new ConnectionError
 
   # Wrapper for 3scale Web Service Management API.
   #
@@ -41,12 +42,16 @@ module ThreeScale
   class Client
     DEFAULT_HOST = 'su1.3scale.net'
 
+    def self.http_response_to_msg(response)
+      "#{response.error_type}: #{response.class} #{response.message}"
+    end
+
     def initialize(options)
-      if options[:provider_key].nil? || options[:provider_key] =~ /^\s*$/
+      @provider_key = options[:provider_key]
+
+      if @provider_key.nil? || @provider_key.empty? || @provider_key =~ /^\s*$/
         raise ArgumentError, 'missing :provider_key'
       end
-
-      @provider_key = options[:provider_key]
 
       @host = options[:host] ||= DEFAULT_HOST
 
@@ -87,14 +92,7 @@ module ThreeScale
 
       http_response = @http.get(path)
 
-      case http_response
-      when Net::HTTPSuccess,Net::HTTPConflict
-        build_authorize_response(http_response.body)
-      when Net::HTTPClientError
-        build_error_response(http_response.body)
-      else
-        raise ServerError.new(http_response)
-      end
+      check_response http_response
     end
 
     # Report transaction(s).
@@ -144,14 +142,7 @@ module ThreeScale
 
       http_response = @http.post('/transactions.xml', payload)
 
-      case http_response
-      when Net::HTTPSuccess
-        build_report_response
-      when Net::HTTPClientError
-        build_error_response(http_response.body)
-      else
-        raise ServerError.new(http_response)
-      end
+      check_response http_response, true
     end
 
     # Authorize an application.
@@ -189,16 +180,34 @@ module ThreeScale
 
       http_response = @http.get(path)
 
-      case http_response
-      when Net::HTTPSuccess,Net::HTTPConflict
-        build_authorize_response(http_response.body)
-      when Net::HTTPClientError
-        build_error_response(http_response.body)
-      else
-        raise ServerError.new(http_response)
-      end
+      check_response http_response
     end
 
+    REPORT_SUCCESS = [Net::HTTPSuccess].freeze
+    private_constant :REPORT_SUCCESS
+    AUTHORIZE_SUCCESS = (REPORT_SUCCESS + Net::HTTPConflict).freeze
+    private_constant :AUTHORIZE_SUCCESS
+
+    def check_response(response, report = false)
+      if report
+        exceptions = REPORT_SUCCESS
+        msg = build_report_response
+      else
+        exceptions = AUTHORIZE_SUCCESS
+        msg = build_authorize_response
+      end
+
+      case response
+      when *exceptions
+        send(msg, response)
+      when Net::HTTPClientError
+        build_error_response(http_response)
+      when Net::HTTPServerError
+        raise ServerError.new(http_response)
+      else
+        raise ConnectionError.new(http_response)
+      end
+    end
     # Authorize an application with OAuth.
     #
     # == Parameters
@@ -235,14 +244,7 @@ module ThreeScale
 
       http_response = @http.get(path)
 
-      case http_response
-      when Net::HTTPSuccess,Net::HTTPConflict
-        build_authorize_response(http_response.body)
-      when Net::HTTPClientError
-        build_error_response(http_response.body)
-      else
-        raise ServerError.new(http_response)
-      end
+      check_response http_response
     end
 
     private
@@ -323,12 +325,24 @@ module ThreeScale
       response
     end
 
-    def build_error_response(body)
-      doc = Nokogiri::XML(body)
-      node = doc.at_css('error')
-
+    def build_error_response(http_response)
+      body = http_response.body
       response = Response.new
-      response.error!(node.content.to_s.strip, node['code'].to_s.strip)
+
+      if body
+        doc = Nokogiri::XML(body)
+        node = doc.at_css('error')
+      end
+
+      if node
+        msg = node.content.to_s.strip
+        code = node['code'].to_s.strip
+      else
+        msg = ThreeScale::Client.http_response_to_msg http_response
+        code = 'unknown_error'
+      end
+
+      response.error!(msg, code)
       response
     end
   end
