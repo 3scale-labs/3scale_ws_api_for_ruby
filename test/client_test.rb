@@ -370,6 +370,26 @@ class ThreeScale::ClientTest < MiniTest::Test
     assert_equal URI.encode_www_form(payload), request.body
   end
 
+  def test_report_supports_user_key
+    payload = {
+      'transactions[0][user_key]'    => 'foo',
+      'transactions[0][timestamp]'   => '2016-07-18 15:42:17 0200',
+      'transactions[0][usage][hits]' => '1',
+      'provider_key'                 => '1234abcd'
+    }
+
+    FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
+                         :status => ['200', 'OK'])
+
+    @client.report({:user_key    => 'foo',
+                    :usage     => {'hits' => 1},
+                    :timestamp => '2016-07-18 15:42:17 0200'})
+
+    request = FakeWeb.last_request
+
+    assert_equal URI.encode_www_form(payload), request.body
+  end
+
   def test_failed_report
     error_body = '<error code="provider_key_invalid">provider key "foo" is invalid</error>'
 

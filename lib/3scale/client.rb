@@ -249,6 +249,7 @@ module ThreeScale
 
     OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url]
     ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url]
+    REPORT_PARAMS = [:user_key, :app_id, :service_id, :timestamp]
 
     def options_to_params(options, allowed_keys)
       params = { :provider_key  => provider_key }
@@ -268,9 +269,9 @@ module ThreeScale
       result = {}
 
       transactions.each_with_index do |transaction, index|
-        append_value(result, index, [:app_id],    transaction[:app_id])
-        append_value(result, index, [:timestamp], transaction[:timestamp])
-        append_value(result, index, [:client_ip], transaction[:client_ip])
+        REPORT_PARAMS.each do |param|
+          append_value(result, index, [param],  transaction[param])
+        end
 
         transaction[:usage].each do |name, value|
           append_value(result, index, [:usage, name], value)
