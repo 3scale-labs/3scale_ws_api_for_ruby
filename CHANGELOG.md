@@ -1,8 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [Unreleased][unreleased]
-### Fixed
+## [2.7.0] - 2016-08-26
 ### Added
 - Added support for 'user_key' authentication mode in 'report' method
 
