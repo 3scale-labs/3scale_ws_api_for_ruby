@@ -69,12 +69,7 @@ module ThreeScale
       end
 
       options_usage ||= {:hits => 1}
-      usage = []
-      options_usage.each_pair do |metric, value|
-        escaped_metric = CGI.escape "[usage][#{metric}]"
-        usage << "#{escaped_metric}=#{CGI.escape(value.to_s)}"
-      end
-      path += "&#{usage.join('&')}"
+      path += "&#{usage_query_params(options_usage)}"
 
       if options_log
         log = []
@@ -283,6 +278,10 @@ module ThreeScale
       end
 
       result
+    end
+
+    def usage_query_params(usage)
+      URI.encode_www_form(usage.map { |metric, value| ["[usage][#{metric}]", value ] })
     end
 
     def append_value(result, index, names, value)
