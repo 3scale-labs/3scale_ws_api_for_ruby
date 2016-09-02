@@ -212,6 +212,51 @@ class ThreeScale::ClientTest < MiniTest::Test
     end
   end
 
+  def test_authorize_with_usage_within_limits
+    url = "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd"\
+          "&app_id=foo&%5Busage%5D%5Bmetric1%5D=1&%5Busage%5D%5Bmetric2%5D=2"
+
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+            </status>'
+
+    FakeWeb.register_uri(:get, url, :status => ['200', 'OK'], :body => body)
+
+    response = @client.authorize(:app_id => 'foo',
+                                 :usage => { 'metric1' => 1, 'metric2' => 2 })
+
+    assert response.success?
+  end
+
+  def test_authorize_with_usage_and_limits_exceeded
+    url = "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd"\
+          "&app_id=foo&%5Busage%5D%5Bhits%5D=1"
+
+    body = '<status>
+              <authorized>false</authorized>
+              <reason>usage limits are exceeded</reason>
+
+              <plan>Ultimate</plan>
+
+              <usage_reports>
+                <usage_report metric="hits" period="day" exceeded="true">
+                  <period_start>2010-04-26 00:00:00 +0000</period_start>
+                  <period_end>2010-04-27 00:00:00 +0000</period_end>
+                  <current_value>10</current_value>
+                  <max_value>5</max_value>
+                </usage_report>
+              </usage_reports>
+            </status>'
+
+    FakeWeb.register_uri(:get, url, :status => ['409'], :body => body)
+
+    response = @client.authorize(:app_id => 'foo', :usage => { 'hits' => 1 })
+
+    assert !response.success?
+    assert_equal 'usage limits are exceeded', response.error_message
+  end
+
   def test_successful_oauth_authorize
     body = '<status>
               <authorized>true</authorized>
@@ -315,6 +360,53 @@ class ThreeScale::ClientTest < MiniTest::Test
     assert_raises ThreeScale::ServerError do
       @client.oauth_authorize(:app_id => 'foo')
     end
+  end
+
+  def test_oauth_authorize_with_usage_within_limits
+    url = "http://#{@host}/transactions/oauth_authorize.xml"\
+          "?provider_key=1234abcd&app_id=foo&%5Busage%5D%5Bmetric1%5D=1"\
+          "&%5Busage%5D%5Bmetric2%5D=2"
+
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+            </status>'
+
+    FakeWeb.register_uri(:get, url, :status => ['200', 'OK'], :body => body)
+
+    response = @client.oauth_authorize(
+        :app_id => 'foo', :usage => { 'metric1' => 1, 'metric2' => 2 })
+
+    assert response.success?
+  end
+
+  def test_oauth_authorize_with_usage_and_limits_exceeded
+    url = "http://#{@host}/transactions/oauth_authorize.xml"\
+          "?provider_key=1234abcd&app_id=foo&%5Busage%5D%5Bhits%5D=1"
+
+    body = '<status>
+              <authorized>false</authorized>
+              <reason>usage limits are exceeded</reason>
+
+              <plan>Ultimate</plan>
+
+              <usage_reports>
+                <usage_report metric="hits" period="day" exceeded="true">
+                  <period_start>2010-04-26 00:00:00 +0000</period_start>
+                  <period_end>2010-04-27 00:00:00 +0000</period_end>
+                  <current_value>10</current_value>
+                  <max_value>5</max_value>
+                </usage_report>
+              </usage_reports>
+            </status>'
+
+    FakeWeb.register_uri(:get, url, :status => ['409'], :body => body)
+
+    response = @client.oauth_authorize(:app_id => 'foo',
+                                       :usage => { 'hits' => 1 })
+
+    assert !response.success?
+    assert_equal 'usage limits are exceeded', response.error_message
   end
 
   def test_report_raises_an_exception_if_no_transactions_given

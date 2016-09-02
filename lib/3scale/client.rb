@@ -69,12 +69,7 @@ module ThreeScale
       end
 
       options_usage ||= {:hits => 1}
-      usage = []
-      options_usage.each_pair do |metric, value|
-        escaped_metric = CGI.escape "[usage][#{metric}]"
-        usage << "#{escaped_metric}=#{CGI.escape(value.to_s)}"
-      end
-      path += "&#{usage.join('&')}"
+      path += "&#{usage_query_params(options_usage)}"
 
       if options_log
         log = []
@@ -247,14 +242,14 @@ module ThreeScale
 
     private
 
-    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url]
-    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url]
+    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url, :usage]
+    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage]
     REPORT_PARAMS = [:user_key, :app_id, :service_id, :timestamp]
 
     def options_to_params(options, allowed_keys)
       params = { :provider_key  => provider_key }
 
-      allowed_keys.each do |key|
+      (allowed_keys - [:usage]).each do |key|
         params[key] = options[key] if options.has_key?(key)
       end
 
@@ -262,7 +257,14 @@ module ThreeScale
         "#{key}=#{CGI.escape(value.to_s)}"
       end
 
-      '?' + tuples.join('&')
+      res = '?' + tuples.join('&')
+
+      # Usage is a hash. The format is a bit different
+      if allowed_keys.include?(:usage) && options.has_key?(:usage)
+        res << "&#{usage_query_params(options[:usage])}"
+      end
+
+      res
     end
 
     def encode_transactions(transactions)
@@ -283,6 +285,10 @@ module ThreeScale
       end
 
       result
+    end
+
+    def usage_query_params(usage)
+      URI.encode_www_form(usage.map { |metric, value| ["[usage][#{metric}]", value ] })
     end
 
     def append_value(result, index, names, value)
