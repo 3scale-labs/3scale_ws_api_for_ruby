@@ -197,19 +197,30 @@ response.redirect_url
 
 ### Report
 
-To report usage, use the +report+ method. You can report multiple transaction at the same time:
+To report usage, use the +report+ method. You can report multiple transactions at the same time:
 
 ```ruby
-response = client.report({:app_id => "first app id",  :usage => {'hits' => 1}},
-                         {:app_id => "second app id", :usage => {'hits' => 1}})
+response = client.report(
+  :transactions => [{:app_id => "first app id",  :usage => {'hits' => 1}},
+                    {:app_id => "second app id", :usage => {'hits' => 1}}])
+```
+
+To specify a service other than the default one:
+```ruby
+response = client.report(
+  :transactions => [{:app_id => "first app id",  :usage => {'hits' => 1}},
+                    {:app_id => "second app id", :usage => {'hits' => 1}}],
+  :service_id => 'service_123')
 ```
 
 The :app_id and :usage parameters are required. Additionaly, you can specify a timestamp
-of transaction:
+of a transaction:
 
 ```ruby
-response = client.report({:app_id => "app id", :usage => {'hits' => 1},
-                          :timestamp => Time.local(2010, 4, 28, 12, 36)})
+response = client.report(
+  :transactions => [{:app_id => "app id",
+                     :usage => {'hits' => 1},
+                     :timestamp => Time.local(2010, 4, 28, 12, 36)}])
 ```
 
 The timestamp can be either a Time object (from ruby's standard library) or something that
