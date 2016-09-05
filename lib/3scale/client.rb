@@ -41,6 +41,12 @@ module ThreeScale
   class Client
     DEFAULT_HOST = 'su1.3scale.net'
 
+    DEPRECATION_MSG_OLD_REPORT = 'warning: def report(*transactions) is '\
+      'deprecated. In next versions, the signature of the report method is '\
+      'going to be: '\
+      'def report(transactions: [], service_id: nil).'.freeze
+    private_constant :DEPRECATION_MSG_OLD_REPORT
+
     def initialize(options)
       if options[:provider_key].nil? || options[:provider_key] =~ /^\s*$/
         raise ArgumentError, 'missing :provider_key'
@@ -96,21 +102,23 @@ module ThreeScale
     #
     # == Parameters
     #
-    # The parameters the transactions to report. Each transaction is a hash with
-    # these elements:
+    # Hash with two fields:
     #
-    #   app_id::    ID of the application to report the transaction for. This parameter is
-    #               required.
-    #   usage::     Hash of usage values. The keys are metric names and values are
-    #               correspoding numeric values. Example: {'hits' => 1, 'transfer' => 1024}.
-    #               This parameter is required.
-    #   timestamp:: Timestamp of the transaction. This can be either a object of the
-    #               ruby's Time class, or a string in the "YYYY-MM-DD HH:MM:SS" format
-    #               (if the time is in the UTC), or a string in
-    #               the "YYYY-MM-DD HH:MM:SS ZZZZZ" format, where the ZZZZZ is the time offset
-    #               from the UTC. For example, "US Pacific Time" has offset -0800, "Tokyo"
-    #               has offset +0900. This parameter is optional, and if not provided, equals
-    #               to the current time.
+    #   transactions:: It is required. It is an enumerable. Each element is a hash with the fields:
+    #         app_id:    ID of the application to report the transaction for. This parameter is
+    #                    required.
+    #         usage:     Hash of usage values. The keys are metric names and values are
+    #                    corresponding numeric values. Example: {'hits' => 1, 'transfer' => 1024}.
+    #                    This parameter is required.
+    #         timestamp: Timestamp of the transaction. This can be either a object of the
+    #                    ruby's Time class, or a string in the "YYYY-MM-DD HH:MM:SS" format
+    #                    (if the time is in the UTC), or a string in
+    #                    the "YYYY-MM-DD HH:MM:SS ZZZZZ" format, where the ZZZZZ is the time offset
+    #                    from the UTC. For example, "US Pacific Time" has offset -0800, "Tokyo"
+    #                    has offset +0900. This parameter is optional, and if not provided, equals
+    #                    to the current time.
+    #   service_id::   ID of the service. It is optional. When not specified, the transactions
+    #                  are reported to the default service.
     #
     # == Return
     #
@@ -122,20 +130,39 @@ module ThreeScale
     #
     # == Examples
     #
-    #   # Report two transactions of two applications.
-    #   client.report({:app_id => 'foo', :usage => {'hits' => 1}},
-    #                 {:app_id => 'bar', :usage => {'hits' => 1}})
+    #    Report two transactions of two applications. Using the default service.
+    #    client.report(transactions: [{:app_id => 'foo', :usage => {'hits' => 1}},
+    #                                 {:app_id => 'bar', :usage => {'hits' => 1}}])
     #
-    #   # Report one transaction with timestamp.
-    #   client.report({:app_id    => 'foo',
-    #                  :timestamp => Time.local(2010, 4, 27, 15, 14),
-    #                  :usage     => {'hits' => 1})
+    #    Report one transaction with timestamp. Using the default service.
+    #    client.report(transactions: [{:app_id    => 'foo',
+    #                                  :timestamp => Time.local(2010, 4, 27, 15, 14),
+    #                                  :usage     => {'hits' => 1}])
     #
-    def report(*transactions)
-      raise ArgumentError, 'no transactions to report' if transactions.empty?
+    #    Report a transaction specifying the service.
+    #    client.report(transactions: [{:app_id => 'foo', :usage => {'hits' => 1}}],
+    #                  service_id: 'a_service_id')
+    #
+    # == Note
+    #
+    # The signature of this method is a bit complicated because we decided to
+    # keep backwards compatibility with a previous version of the method:
+    # def report(*transactions)
+    def report(*reports, transactions: [], service_id: nil, **rest)
+      if (!transactions || transactions.empty?) && rest.empty?
+        raise ArgumentError, 'no transactions to report'
+      end
+
+      transactions = transactions.concat(reports)
+
+      unless rest.empty?
+        warn(DEPRECATION_MSG_OLD_REPORT)
+        transactions.concat([rest])
+      end
 
       payload = encode_transactions(transactions)
       payload['provider_key'] = CGI.escape(provider_key)
+      payload['service_id'] = CGI.escape(service_id.to_s) if service_id
 
       http_response = @http.post('/transactions.xml', payload)
 

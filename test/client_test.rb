@@ -413,15 +413,23 @@ class ThreeScale::ClientTest < MiniTest::Test
     assert_raises ArgumentError do
       @client.report
     end
+
+    [nil, []].each do |invalid_transactions|
+      assert_raises ArgumentError do
+        @client.report(transactions: invalid_transactions)
+      end
+    end
   end
 
   def test_successful_report
     FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
                          :status => ['200', 'OK'])
 
-    response = @client.report({:app_id    => 'foo',
-                               :timestamp => Time.local(2010, 4, 27, 15, 00),
-                               :usage     => {'hits' => 1}})
+    transactions = [{ :app_id    => 'foo',
+                      :timestamp => Time.local(2010, 4, 27, 15, 00),
+                      :usage     => {'hits' => 1 } }]
+
+    response = @client.report(transactions: transactions)
 
     assert response.success?
   end
@@ -443,19 +451,20 @@ class ThreeScale::ClientTest < MiniTest::Test
     FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
                          :status => ['200', 'OK'])
 
-    @client.report({:app_id    => 'foo',
-                    :usage     => {'hits' => 1},
-                    :timestamp => '2010-04-27 15:42:17 0200',
-                    :log       => {
-                      'request'  => 'foo',
-                      'response' => 'bar',
-                      'code'     => 200,
-                    }
-                   },
+    transactions = [{ :app_id    => 'foo',
+                      :usage     => { 'hits' => 1 },
+                      :timestamp => '2010-04-27 15:42:17 0200',
+                      :log       => {
+                          'request'  => 'foo',
+                          'response' => 'bar',
+                          'code'     => 200
+                      }
+                    },
+                    { :app_id    => 'bar',
+                      :usage     => { 'hits' => 1 },
+                      :timestamp => Time.local(2010, 4, 27, 15, 00) }]
 
-                   {:app_id    => 'bar',
-                    :usage     => {'hits' => 1},
-                    :timestamp => Time.local(2010, 4, 27, 15, 00)})
+    @client.report(transactions: transactions)
 
     request = FakeWeb.last_request
 
@@ -473,11 +482,73 @@ class ThreeScale::ClientTest < MiniTest::Test
     FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
                          :status => ['200', 'OK'])
 
-    @client.report({:user_key    => 'foo',
-                    :usage     => {'hits' => 1},
-                    :timestamp => '2016-07-18 15:42:17 0200'})
+    transactions = [{ :user_key  => 'foo',
+                      :usage     => { 'hits' => 1 },
+                      :timestamp => '2016-07-18 15:42:17 0200' }]
+
+    @client.report(transactions: transactions)
 
     request = FakeWeb.last_request
+
+    assert_equal URI.encode_www_form(payload), request.body
+  end
+
+  def test_report_with_service_id
+    FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
+                         :status => ['200', 'OK'])
+
+    transactions = [{ :app_id    => 'an_app_id',
+                      :usage     => { 'hits' => 1 },
+                      :timestamp => '2016-07-18 15:42:17 0200' }]
+
+    @client.report(transactions: transactions, service_id: 'a_service_id')
+
+    request = FakeWeb.last_request
+
+    payload = {
+        'transactions[0][app_id]'      => 'an_app_id',
+        'transactions[0][timestamp]'   => '2016-07-18 15:42:17 0200',
+        'transactions[0][usage][hits]' => '1',
+        'provider_key'                 => '1234abcd',
+        'service_id'                   => 'a_service_id'
+    }
+
+    assert_equal URI.encode_www_form(payload), request.body
+  end
+
+  # We changed the signature of the report method but we keep the compatibility
+  # with the old one: def report(*transactions).This tests only checks that
+  # backwards compatibility.
+  def test_report_compatibility_with_old_report_format
+    FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
+                         :status => ['200', 'OK'])
+
+    transactions = [{ :app_id    => 'app_id_1',
+                      :usage     => { 'hits' => 1 },
+                      :timestamp => '2016-07-18 15:42:17 0200' },
+                    { :app_id    => 'app_id_2',
+                      :usage     => { 'hits' => 2 },
+                      :timestamp => '2016-07-19 15:42:17 0200' },
+                    { :app_id    => 'app_id_3',
+                      :usage     => { 'hits' => 3 },
+                      :timestamp => '2016-07-20 15:42:17 0200' }]
+
+    @client.report(*transactions)
+
+    request = FakeWeb.last_request
+
+    payload = {
+        'transactions[0][app_id]'      => 'app_id_1',
+        'transactions[0][timestamp]'   => '2016-07-18 15:42:17 0200',
+        'transactions[0][usage][hits]' => '1',
+        'transactions[1][app_id]'      => 'app_id_2',
+        'transactions[1][timestamp]'   => '2016-07-19 15:42:17 0200',
+        'transactions[1][usage][hits]' => '2',
+        'transactions[2][app_id]'      => 'app_id_3',
+        'transactions[2][timestamp]'   => '2016-07-20 15:42:17 0200',
+        'transactions[2][usage][hits]' => '3',
+        'provider_key'                 => '1234abcd'
+    }
 
     assert_equal URI.encode_www_form(payload), request.body
   end
@@ -490,7 +561,8 @@ class ThreeScale::ClientTest < MiniTest::Test
                          :body   => error_body)
 
     client   = ThreeScale::Client.new(:provider_key => 'foo')
-    response = client.report({:app_id => 'abc', :usage => {'hits' => 1}})
+    transactions = [{ :app_id => 'abc', :usage => { 'hits' => 1 } }]
+    response = client.report(transactions: transactions)
 
     assert !response.success?
     assert_equal 'provider_key_invalid',          response.error_code
@@ -502,8 +574,10 @@ class ThreeScale::ClientTest < MiniTest::Test
                          :status => ['500', 'Internal Server Error'],
                          :body   => 'OMG! WTF!')
 
+    transactions = [{ :app_id => 'foo', :usage => { 'hits' => 1 } }]
+
     assert_raises ThreeScale::ServerError do
-      @client.report({:app_id => 'foo', :usage => {'hits' => 1}})
+      @client.report(transactions: transactions)
     end
   end
 
@@ -531,7 +605,8 @@ class ThreeScale::ClientTest < MiniTest::Test
                          :status => ['200', 'OK'],
                          :body   => success_body)
     client = ThreeScale::Client.new(:provider_key => 'foo')
-    response = client.report({:app_id => 'abc', :usage => {'hits' => 1}})
+    transactions = [{ :app_id => 'abc', :usage => { 'hits' => 1 } }]
+    client.report(transactions: transactions)
 
     request = FakeWeb.last_request
     assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Agent"]
