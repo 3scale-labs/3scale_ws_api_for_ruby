@@ -18,11 +18,12 @@ module ThreeScale
         @secure = !!options[:secure]
         @host = options.fetch(:host)
         @persistent = options[:persistent]
+        @port = options[:port] || (@secure ? 443 : 80)
 
         backend_class = @persistent ? self.class.persistent_backend : NetHttp or raise PersistenceNotAvailable
         backend_class.prepare
 
-        @http = backend_class.new(@host)
+        @http = backend_class.new(@host, @port)
         @http.ssl! if @secure
       end
 
@@ -33,8 +34,9 @@ module ThreeScale
         def self.prepare
         end
 
-        def initialize(host)
+        def initialize(host, port)
           @host = host
+          @port = port
         end
 
         def get_request(path)
@@ -65,7 +67,7 @@ module ThreeScale
           require 'net/http/persistent'
         end
 
-        def initialize(host)
+        def initialize(host, port)
           super
           @http = ::Net::HTTP::Persistent.new
           @protocol = 'http'
@@ -87,7 +89,7 @@ module ThreeScale
         end
 
         def full_uri(path)
-          URI.join "#{@protocol}://#{@host}", path
+          URI.join "#{@protocol}://#{@host}:#{@port}", path
         end
       end
 
@@ -95,13 +97,13 @@ module ThreeScale
         extend Forwardable
         def_delegators :@http, :use_ssl?, :active?
 
-        def initialize(host)
+        def initialize(host, port)
           super
-          @http = Net::HTTP.new(@host, 80)
+          @http = Net::HTTP.new(@host, port)
         end
 
         def ssl!
-          @http = Net::HTTP.new(@host, 443)
+          @http = Net::HTTP.new(@host, @port)
           @http.use_ssl = true
         end
 
