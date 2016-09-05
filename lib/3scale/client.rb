@@ -159,6 +159,9 @@ module ThreeScale
     #   app_key::    secret key assigned to the application. Required only if application has
     #                a key defined.
     #   service_id:: id of the service (required if you have more than one service)
+    #   usage::      predicted usage. It is optional. It is a hash where the keys are metrics
+    #                and the values their predicted usage.
+    #                Example: {'hits' => 1, 'my_metric' => 100}
     #
     # == Return
     #
@@ -202,6 +205,9 @@ module ThreeScale
     #
     #   app_id::  id of the application to authorize. This is required.
     #   service_id:: id of the service (required if you have more than one service)
+    #   usage::      predicted usage. It is optional. It is a hash where the keys are metrics
+    #                and the values their predicted usage.
+    #                Example: {'hits' => 1, 'my_metric' => 100}
     #
     # == Return
     #
