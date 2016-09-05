@@ -2,7 +2,6 @@ language: ruby
 cache: bundler
 sudo: false
 rvm:
-- 1.9.3
 - 2.0.0
 - 2.1
 - 2.2
@@ -13,8 +12,6 @@ gemfile:
   - gemfiles/rack_1.gemfile
 matrix:
   exclude:
-  - rvm: 1.9.3
-    gemfile: Gemfile
   - rvm: 2.0.0
     gemfile: Gemfile
   - rvm: 2.1
@@ -23,11 +20,8 @@ matrix:
     gemfile: Gemfile
   - rvm: jruby
     gemfile: Gemfile
-  include:
-  - rvm: jruby
-    gemfile: gemfiles/rack_1.gemfile
-    env: JRUBY_OPTS="--2.0"
 env:
   global:
     - TEST_3SCALE_APP_IDS=4d4b20b9 TEST_3SCALE_APP_KEYS=ecce202ecc2eb8dc7a499c34a34d5987
     - secure: VSElS0KvnufcZKStV7kj6xHFEiWvQkpxk1IEuhKq5JqywniN/6ScaNUFxbBKrOUrqhzXIRUCteBP2wvYRjlNhLFZSnYskzh7dLkOp/WV+WK6KjrdflTiF6UTxW4pBSsg6YDJ/wWJlmwsPVty1pRvOE3ru6uco+dTWCCLn4BvWqc=
+    - JRUBY_OPTS="--2.0"
