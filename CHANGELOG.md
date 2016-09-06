@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Added
+- Added support for reporting to services other than the default one.
+  `ThreeScale::Client#report` now accepts an optional `service_id`.
+  There has been a change in the params that the method accepts. This
+  change is backwards compatible but a deprecation warning is shown
+  when calling the method using the old params.
+
 ## [2.7.0] - 2016-08-26
 ### Added
 - Added support for 'user_key' authentication mode in 'report' method
