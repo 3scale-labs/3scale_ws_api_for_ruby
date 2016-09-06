@@ -87,7 +87,7 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
          :log => {:request => "a/a", :response => "b/b", :code => 200 }}
       end
 
-      response = @client.report(*transactions)
+      response = @client.report(transactions: transactions)
       assert response.success?
     end
 
@@ -97,7 +97,7 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
       end
 
       client   = ThreeScale::Client.new(:provider_key => 'invalid-key')
-      response = client.report(*transactions)
+      response = client.report(transactions: transactions)
       assert !response.success?
       assert_equal 'provider_key_invalid',                  response.error_code
       assert_equal 'provider key "invalid-key" is invalid', response.error_message
