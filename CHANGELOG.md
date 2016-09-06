@@ -1,13 +1,20 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.8.0] - 2016-09-06
+This version drops support for Ruby versions < 2.0.
+
 ### Added
 - Added support for reporting to services other than the default one.
   `ThreeScale::Client#report` now accepts an optional `service_id`.
   There has been a change in the params that the method accepts. This
   change is backwards compatible but a deprecation warning is shown
   when calling the method using the old params.
+- The two authorize calls `ThreeScale::Client#Authorize` and
+  `ThreeScale::Client#oauth_authorize` now accept an optional predicted
+  usage parameter.  
+- It is now possible to specify a port different that the default
+  one for the API service management endpoint.
 
 ## [2.7.0] - 2016-08-26
 ### Added
