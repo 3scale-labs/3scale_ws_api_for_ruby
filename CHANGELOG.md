@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Changed
+- Improved parsing performance of the response of the authorize call.
+
 ## [2.8.0] - 2016-09-06
 This version drops support for Ruby versions < 2.0.
 
@@ -12,7 +16,7 @@ This version drops support for Ruby versions < 2.0.
   when calling the method using the old params.
 - The two authorize calls `ThreeScale::Client#Authorize` and
   `ThreeScale::Client#oauth_authorize` now accept an optional predicted
-  usage parameter.  
+  usage parameter.
 - It is now possible to specify a port different that the default
   one for the API service management endpoint.
 
