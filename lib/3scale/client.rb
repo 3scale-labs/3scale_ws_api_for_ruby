@@ -352,10 +352,13 @@ module ThreeScale
       response.plan = doc.at_css('plan').content.to_s.strip
 
       doc.css('usage_reports usage_report').each do |node|
+        period_start = node.at('period_start')
+        period_end = node.at('period_end')
+
         response.add_usage_report(:metric        => node['metric'].to_s.strip,
                                   :period        => node['period'].to_s.strip.to_sym,
-                                  :period_start  => node.at('period_start') ? node.at('period_start').content : '' ,
-                                  :period_end    => node.at('period_end') ? node.at('period_end').content : '',
+                                  :period_start  => period_start ? period_start.content : '',
+                                  :period_end    => period_end ? period_end.content : '',
                                   :current_value => node.at('current_value').content.to_i,
                                   :max_value     => node.at('max_value').content.to_i)
       end
