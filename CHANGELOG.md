@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.8.1] - 2016-10-11
 ### Changed
 - Improved parsing performance of the response of the authorize call.
 
