@@ -257,6 +257,67 @@ class ThreeScale::ClientTest < MiniTest::Test
     assert_equal 'usage limits are exceeded', response.error_message
   end
 
+  def test_hierarchy
+    # Hierarchies can be retrieved in authorize, authrep, and oauth_authorize
+    # calls.
+    urls = [:authorize, :authrep, :oauth_authorize].inject({}) do |acc, method|
+      acc[method] = "http://#{@host}/transactions/#{method}.xml?"\
+                    "provider_key=1234abcd&app_id=foo&hierarchy=1"
+      acc[method] << "&%5Busage%5D%5Bhits%5D=1" if method == :authrep
+      acc
+    end
+
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+
+              <usage_reports>
+                <usage_report metric="parent1" period="day">
+                  <period_start>2016-01-01 00:00:00 +0000</period_start>
+                  <period_end>2016-01-02 00:00:00 +0000</period_end>
+                  <max_value>1000</max_value>
+                  <current_value>10</current_value>
+                </usage_report>
+                <usage_report metric="parent2" period="day">
+                  <period_start>2016-01-01 00:00:00 +0000</period_start>
+                  <period_end>2016-01-02 00:00:00 +0000</period_end>
+                  <max_value>100</max_value>
+                  <current_value>1</current_value>
+                </usage_report>
+                <usage_report metric="child1" period="day">
+                  <period_start>2016-01-01 00:00:00 +0000</period_start>
+                  <period_end>2016-01-02 00:00:00 +0000</period_end>
+                  <max_value>1000</max_value>
+                  <current_value>5</current_value>
+                </usage_report>
+                <usage_report metric="child2" period="day">
+                  <period_start>2016-01-01 00:00:00 +0000</period_start>
+                  <period_end>2016-01-02 00:00:00 +0000</period_end>
+                  <max_value>1000</max_value>
+                  <current_value>5</current_value>
+                </usage_report>
+                <usage_report metric="child3" period="day">
+                  <period_start>2016-01-01 00:00:00 +0000</period_start>
+                  <period_end>2016-01-02 00:00:00 +0000</period_end>
+                  <max_value>100</max_value>
+                  <current_value>5</current_value>
+                </usage_report>
+              </usage_reports>
+
+              <hierarchy>
+                <metric name="parent1" children="child1 child2" />
+                <metric name="parent2" children="child3" />
+              </hierarchy>
+            </status>'
+
+    urls.each do |method, url|
+      FakeWeb.register_uri(:get, url, :status => ['200', 'OK'], :body => body)
+      response = @client.send(method, :app_id => 'foo', :hierarchy => 1)
+      assert_equal response.hierarchy, { 'parent1' => ['child1', 'child2'],
+                                         'parent2' => ['child3'] }
+    end
+  end
+
   def test_successful_oauth_authorize
     body = '<status>
               <authorized>true</authorized>
