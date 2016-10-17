@@ -5,12 +5,19 @@ module ThreeScale
     def initialize
       super
       @usage_reports = []
+
+      # hierarchy is a hash where the keys are metric names, and the values
+      # their children (array of metric names).
+      # Only metrics that have at least one child appear as keys.
+      @hierarchy = {}
     end
 
     attr_accessor :plan
     attr_accessor :app_key
     attr_accessor :redirect_url
     attr_accessor :service_id
+    attr_reader :usage_reports
+    attr_reader :hierarchy # Not part of the stable API
 
     class UsageReport
       attr_reader :metric
@@ -37,10 +44,12 @@ module ThreeScale
       end
     end
 
-    attr_reader :usage_reports
-
     def add_usage_report(options)
       @usage_reports << UsageReport.new(options)
+    end
+
+    def add_metric_to_hierarchy(metric_name, children)
+      @hierarchy[metric_name] = children
     end
   end
 end
