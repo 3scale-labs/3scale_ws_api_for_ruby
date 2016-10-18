@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Added
+- Added support for retrieving metric hierarchies in authorize calls.
+  This is an experimental feature and its support is not guaranteed for
+  future releases.
+
 ## [2.8.1] - 2016-10-11
 ### Changed
 - Improved parsing performance of the response of the authorize call.
