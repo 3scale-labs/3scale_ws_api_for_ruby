@@ -2,16 +2,6 @@ require 'time'
 
 module ThreeScale
   class AuthorizeResponse < Response
-    def initialize
-      super
-      @usage_reports = []
-    end
-
-    attr_accessor :plan
-    attr_accessor :app_key
-    attr_accessor :redirect_url
-    attr_accessor :service_id
-
     class UsageReport
       attr_reader :metric
       attr_reader :period
@@ -37,10 +27,29 @@ module ThreeScale
       end
     end
 
+    attr_accessor :plan
+    attr_accessor :app_key
+    attr_accessor :redirect_url
+    attr_accessor :service_id
     attr_reader :usage_reports
+    attr_reader :hierarchy # Not part of the stable API
+
+    def initialize
+      super
+      @usage_reports = []
+
+      # hierarchy is a hash where the keys are metric names, and the values
+      # their children (array of metric names).
+      # Only metrics that have at least one child appear as keys.
+      @hierarchy = {}
+    end
 
     def add_usage_report(options)
       @usage_reports << UsageReport.new(options)
+    end
+
+    def add_metric_to_hierarchy(metric_name, children)
+      @hierarchy[metric_name] = children
     end
   end
 end

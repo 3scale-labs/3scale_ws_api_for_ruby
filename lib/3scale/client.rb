@@ -275,8 +275,10 @@ module ThreeScale
 
     private
 
-    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url, :usage]
-    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage]
+    # The support for the 'hierarchy' param is experimental. Its support is not
+    # guaranteed for future versions.
+    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url, :usage, :hierarchy]
+    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage, :hierarchy]
     REPORT_PARAMS = [:user_key, :app_id, :service_id, :timestamp]
 
     def options_to_params(options, allowed_keys)
@@ -361,6 +363,12 @@ module ThreeScale
                                   :period_end    => period_end ? period_end.content : '',
                                   :current_value => node.at('current_value').content.to_i,
                                   :max_value     => node.at('max_value').content.to_i)
+      end
+
+      doc.css('hierarchy metric').each do |node|
+        metric_name = node['name'].to_s.strip
+        children = node['children'].to_s.strip.split(' ')
+        response.add_metric_to_hierarchy(metric_name, children)
       end
 
       response
