@@ -12,7 +12,8 @@ Analytics Setup: https://support.3scale.net/quickstarts/3scale-api-analytics
 
 ## Installation
 
-This library is distributed as a gem:
+This library is distributed as a gem, for which Ruby 2.1 or JRuby 9.1.1.0 are
+minimum requirements:
 ```sh
 gem install 3scale_client
 ```
