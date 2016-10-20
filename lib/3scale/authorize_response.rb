@@ -27,6 +27,13 @@ module ThreeScale
       end
     end
 
+    # These 2 constants are defined according to what the 3scale
+    # backend returns in the response of authorize calls.
+    LIMITS_EXCEEDED = 'limits_exceeded'.freeze
+    private_constant :LIMITS_EXCEEDED
+    LIMITS_EXCEEDED_MSG = 'usage limits are exceeded'.freeze
+    private_constant :LIMITS_EXCEEDED_MSG
+
     attr_accessor :plan
     attr_accessor :app_key
     attr_accessor :redirect_url
@@ -50,6 +57,12 @@ module ThreeScale
 
     def add_metric_to_hierarchy(metric_name, children)
       @hierarchy[metric_name] = children
+    end
+
+    # The response already specifies whether any usage report (if present)
+    # is over the limits, so use that instead of scanning the reports.
+    def limits_exceeded?
+      error_code == LIMITS_EXCEEDED || error_message == LIMITS_EXCEEDED_MSG
     end
   end
 end
