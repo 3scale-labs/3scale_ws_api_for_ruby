@@ -1,24 +1,23 @@
 sudo: required
 dist: trusty
 language: ruby
-before_install: gem install -N bundler -v '~> 1.11'
 cache: bundler
 rvm:
   - 2.1
   - 2.2
   - 2.3
-  - jruby-9.1.5.0
-jdk:
-  - oraclejdk8
 gemfile:
   - Gemfile
-  - gemfiles/rack_1.gemfile
 matrix:
   exclude:
   - rvm: 2.1
     gemfile: Gemfile
-  - rvm: 2.2
+  include:
+  - rvm: 2.1
+    gemfile: gemfiles/rack_1.gemfile
+  - rvm: jruby-9.1.5.0
     gemfile: Gemfile
+    jdk: oraclejdk8
 env:
   global:
     - TEST_3SCALE_APP_IDS=4d4b20b9 TEST_3SCALE_APP_KEYS=ecce202ecc2eb8dc7a499c34a34d5987
