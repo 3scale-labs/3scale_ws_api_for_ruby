@@ -119,6 +119,7 @@ class ThreeScale::ClientTest < MiniTest::Test
     response = @client.authorize(:app_id => 'foo')
 
     assert response.success?
+    assert !response.limits_exceeded?
     assert_equal 'Ultimate', response.plan
     assert_equal 2, response.usage_reports.size
 
@@ -188,8 +189,9 @@ class ThreeScale::ClientTest < MiniTest::Test
     response = @client.authorize(:app_id => 'foo')
 
     assert !response.success?
+    assert response.limits_exceeded?
     assert_equal 'usage limits are exceeded', response.error_message
-    assert response.usage_reports[0].exceeded?
+    assert response.usage_reports.any? { |report| report.exceeded? }
   end
 
   def test_authorize_with_invalid_app_id
@@ -200,6 +202,7 @@ class ThreeScale::ClientTest < MiniTest::Test
     response = @client.authorize(:app_id => 'foo')
 
     assert !response.success?
+    assert !response.limits_exceeded?
     assert_equal 'application_not_found',                   response.error_code
     assert_equal 'application with id="foo" was not found', response.error_message
   end
@@ -227,6 +230,7 @@ class ThreeScale::ClientTest < MiniTest::Test
                                  :usage => { 'metric1' => 1, 'metric2' => 2 })
 
     assert response.success?
+    assert !response.limits_exceeded?
   end
 
   def test_authorize_with_usage_and_limits_exceeded
@@ -254,6 +258,7 @@ class ThreeScale::ClientTest < MiniTest::Test
     response = @client.authorize(:app_id => 'foo', :usage => { 'hits' => 1 })
 
     assert !response.success?
+    assert response.limits_exceeded?
     assert_equal 'usage limits are exceeded', response.error_message
   end
 
@@ -347,6 +352,7 @@ class ThreeScale::ClientTest < MiniTest::Test
 
     response = @client.oauth_authorize(:app_id => 'foo', :redirect_url => "http://localhost:8080/oauth/oauth_redirect")
     assert response.success?
+    assert !response.limits_exceeded?
 
     assert_equal '883bdb8dbc3b6b77dbcf26845560fdbb', response.app_key
     assert_equal 'http://localhost:8080/oauth/oauth_redirect', response.redirect_url
@@ -399,8 +405,9 @@ class ThreeScale::ClientTest < MiniTest::Test
     response = @client.oauth_authorize(:app_id => 'foo')
 
     assert !response.success?
+    assert response.limits_exceeded?
     assert_equal 'usage limits are exceeded', response.error_message
-    assert response.usage_reports[0].exceeded?
+    assert response.usage_reports.any? { |report| report.exceeded? }
   end
 
   def test_oauth_authorize_with_invalid_app_id
@@ -411,6 +418,7 @@ class ThreeScale::ClientTest < MiniTest::Test
     response = @client.oauth_authorize(:app_id => 'foo')
 
     assert !response.success?
+    assert !response.limits_exceeded?
     assert_equal 'application_not_found',                   response.error_code
     assert_equal 'application with id="foo" was not found', response.error_message
   end
@@ -439,6 +447,7 @@ class ThreeScale::ClientTest < MiniTest::Test
         :app_id => 'foo', :usage => { 'metric1' => 1, 'metric2' => 2 })
 
     assert response.success?
+    assert !response.limits_exceeded?
   end
 
   def test_oauth_authorize_with_usage_and_limits_exceeded
@@ -467,6 +476,7 @@ class ThreeScale::ClientTest < MiniTest::Test
                                        :usage => { 'hits' => 1 })
 
     assert !response.success?
+    assert response.limits_exceeded?
     assert_equal 'usage limits are exceeded', response.error_message
   end
 
@@ -653,6 +663,7 @@ class ThreeScale::ClientTest < MiniTest::Test
     response = client.authorize(:app_id => 'foo')
 
     assert response.success?
+    assert !response.limits_exceeded?
     request = FakeWeb.last_request
     assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Agent"]
     assert_equal "su1.3scale.net", request["host"]
@@ -685,6 +696,7 @@ class ThreeScale::ClientTest < MiniTest::Test
     response = client.authrep(:app_id => 'abc')
 
     assert response.success?
+    assert !response.limits_exceeded?
     request = FakeWeb.last_request
     assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Agent"]
     assert_equal "su1.3scale.net", request["host"]
