@@ -92,7 +92,7 @@ module ThreeScale
       when Net::HTTPSuccess,Net::HTTPConflict
         build_authorize_response(http_response.body)
       when Net::HTTPClientError
-        build_error_response(http_response.body)
+        build_error_response(http_response.body, AuthorizeResponse)
       else
         raise ServerError.new(http_response)
       end
@@ -218,7 +218,7 @@ module ThreeScale
       when Net::HTTPSuccess,Net::HTTPConflict
         build_authorize_response(http_response.body)
       when Net::HTTPClientError
-        build_error_response(http_response.body)
+        build_error_response(http_response.body, AuthorizeResponse)
       else
         raise ServerError.new(http_response)
       end
@@ -267,7 +267,7 @@ module ThreeScale
       when Net::HTTPSuccess,Net::HTTPConflict
         build_authorize_response(http_response.body)
       when Net::HTTPClientError
-        build_error_response(http_response.body)
+        build_error_response(http_response.body, AuthorizeResponse)
       else
         raise ServerError.new(http_response)
       end
@@ -374,11 +374,11 @@ module ThreeScale
       response
     end
 
-    def build_error_response(body)
+    def build_error_response(body, klass = Response)
       doc = Nokogiri::XML(body)
       node = doc.at_css('error')
 
-      response = Response.new
+      response = klass.new
       response.error!(node.content.to_s.strip, node['code'].to_s.strip)
       response
     end
