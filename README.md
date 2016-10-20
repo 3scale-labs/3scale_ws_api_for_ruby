@@ -93,19 +93,19 @@ The example is using the app_id authentication pattern, but you can also use oth
 class ApplicationController < ActionController
   # Call the authenticate method on each request to the API
   before_filter :authenticate
-        
+
   # You only need to instantiate a new Client once and store it as a global variable
   # You should store your provider key in the environment because this key is secret!
   def create_client
-    @@threescale_client ||= ThreeScale::Client.new(:provider_key => ENV['PROVIDER_KEY'])    
+    @@threescale_client ||= ThreeScale::Client.new(:provider_key => ENV['PROVIDER_KEY'])
   end
-        
-  # To record usage, create a new metric in your application plan. You will use the 
-  # "system name" that you specifed on the metric/method to pass in as the key to the usage hash. 
-  # The key needs to be a symbol. 
+
+  # To record usage, create a new metric in your application plan. You will use the
+  # "system name" that you specifed on the metric/method to pass in as the key to the usage hash.
+  # The key needs to be a symbol.
   # A way to pass the metric is to add a parameter that will pass the name of the metric/method along
   def authenticate
-    response = create_client.authrep(:app_id => params["app_id"], 
+    response = create_client.authrep(:app_id => params["app_id"],
                                      :app_key => params["app_key"],
                                      :usage => { params[:metric].to_sym => 1 })
     if response.success?
