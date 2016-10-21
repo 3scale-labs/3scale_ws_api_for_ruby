@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.9.0] - 2016-10-21
+This version drops support for Ruby versions < 2.1 and JRuby < 9.1.1.0.
+
+### Added
+- Added method `ThreeScale::Client::AuthorizeResponse#limits_exceeded?`
+  to check whether an authorization is denied and is so because at least
+  one metric went over the limits.
+
 ## [2.8.2] - 2016-10-18
 ### Added
 - Added support for retrieving metric hierarchies in authorize calls.
