@@ -39,19 +39,31 @@ module ThreeScale
           @port = port
         end
 
-        def get_request(path)
+        def get_request(path, headers: nil)
           get = Net::HTTP::Get.new(path)
           get.add_field(*USER_CLIENT_HEADER)
           get.add_field('Host', @host)
+          add_request_headers(get, headers) if headers
           get
         end
 
-        def post_request(path, payload)
+        def post_request(path, payload, headers: nil)
           post = Net::HTTP::Post.new(path)
           post.add_field(*USER_CLIENT_HEADER)
           post.add_field('Host', @host)
+          add_request_headers(post, headers) if headers
           post.set_form_data(payload)
           post
+        end
+
+        private
+
+        def add_request_headers(req, headers)
+          if headers
+            headers.each do |hk, hv|
+              req.add_field(hk, hv)
+            end
+          end
         end
       end
 
@@ -77,15 +89,15 @@ module ThreeScale
           @protocol = 'https'
         end
 
-        def get(path)
+        def get(path, headers: nil)
           uri = full_uri(path)
-          @http.request(uri, get_request(path))
+          @http.request(uri, get_request(path, headers: headers))
         end
 
 
-        def post(path, payload)
+        def post(path, payload, headers: nil)
           uri = full_uri(path)
-          @http.request(uri, post_request(path, payload))
+          @http.request(uri, post_request(path, payload, headers: headers))
         end
 
         def full_uri(path)
@@ -107,12 +119,12 @@ module ThreeScale
           @http.use_ssl = true
         end
 
-        def get(path)
-          @http.request get_request(path)
+        def get(path, headers: nil)
+          @http.request get_request(path, headers: headers)
         end
 
-        def post(path, payload)
-          @http.request post_request(path, payload)
+        def post(path, payload, headers: nil)
+          @http.request post_request(path, payload, headers: headers)
         end
       end
 
