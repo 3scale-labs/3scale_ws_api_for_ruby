@@ -286,10 +286,8 @@ module ThreeScale
 
     private
 
-    # The support for the 'hierarchy' param is experimental. Its support is not
-    # guaranteed for future versions.
-    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url, :usage, :hierarchy]
-    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage, :hierarchy]
+    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url, :usage]
+    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage]
     REPORT_PARAMS = [:user_key, :app_id, :service_id, :timestamp]
 
     def options_to_params(options, allowed_keys)
