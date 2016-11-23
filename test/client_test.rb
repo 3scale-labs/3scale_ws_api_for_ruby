@@ -267,7 +267,7 @@ class ThreeScale::ClientTest < MiniTest::Test
     # calls.
     urls = [:authorize, :authrep, :oauth_authorize].inject({}) do |acc, method|
       acc[method] = "http://#{@host}/transactions/#{method}.xml?"\
-                    "provider_key=1234abcd&app_id=foo&hierarchy=1"
+                    "provider_key=1234abcd&app_id=foo"
       acc[method] << "&%5Busage%5D%5Bhits%5D=1" if method == :authrep
       acc
     end
@@ -317,7 +317,7 @@ class ThreeScale::ClientTest < MiniTest::Test
 
     urls.each do |method, url|
       FakeWeb.register_uri(:get, url, :status => ['200', 'OK'], :body => body)
-      response = @client.send(method, :app_id => 'foo', :hierarchy => 1)
+      response = @client.send(method, :app_id => 'foo', extensions: { :hierarchy => 1 })
       assert_equal response.hierarchy, { 'parent1' => ['child1', 'child2'],
                                          'parent2' => ['child3'] }
     end
