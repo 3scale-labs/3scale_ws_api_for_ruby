@@ -47,6 +47,9 @@ module ThreeScale
       'def report(transactions: [], service_id: nil).'.freeze
     private_constant :DEPRECATION_MSG_OLD_REPORT
 
+    EXTENSIONS_HEADER = '3scale-options'.freeze
+    private_constant :EXTENSIONS_HEADER
+
     def initialize(options)
       if options[:provider_key].nil? || options[:provider_key] =~ /^\s*$/
         raise ArgumentError, 'missing :provider_key'
@@ -381,6 +384,25 @@ module ThreeScale
       response = klass.new
       response.error!(node.content.to_s.strip, node['code'].to_s.strip)
       response
+    end
+
+    # Encode extensions header
+    def extensions_to_header(extensions)
+      {
+        EXTENSIONS_HEADER => extensions.map do |hk, hv|
+          "#{extension_encode(hk.to_s)}=#{extension_encode(hv.to_s)}"
+        end.join('&'.freeze)
+      }
+    end
+
+    # This helper method effectively escapes URI unsafe and separator (&) and
+    # assignment (=) values. Must be fed just keys or values, not a string
+    # representing assignment or multiple parameters (which would need a
+    # separator).
+    def extension_encode(s)
+      URI.encode(s).split('%'.freeze).map do |sub_s|
+        CGI.escape sub_s
+      end.join('%'.freeze)
     end
   end
 end
