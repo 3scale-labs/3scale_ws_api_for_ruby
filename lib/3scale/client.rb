@@ -72,6 +72,7 @@ module ThreeScale
 
       options_usage = options.delete :usage
       options_log   = options.delete :log
+      extensions    = options.delete :extensions
 
       options.each_pair do |param, value|
         path += "&#{param}=#{CGI.escape(value.to_s)}"
@@ -89,7 +90,8 @@ module ThreeScale
         path += "&#{log.join('&')}"
       end
 
-      http_response = @http.get(path)
+      headers = extensions_to_header extensions if extensions
+      http_response = @http.get(path, headers: headers)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -151,7 +153,7 @@ module ThreeScale
     # The signature of this method is a bit complicated because we decided to
     # keep backwards compatibility with a previous version of the method:
     # def report(*transactions)
-    def report(*reports, transactions: [], service_id: nil, **rest)
+    def report(*reports, transactions: [], service_id: nil, extensions: nil, **rest)
       if (!transactions || transactions.empty?) && rest.empty?
         raise ArgumentError, 'no transactions to report'
       end
@@ -167,7 +169,8 @@ module ThreeScale
       payload['provider_key'] = CGI.escape(provider_key)
       payload['service_id'] = CGI.escape(service_id.to_s) if service_id
 
-      http_response = @http.post('/transactions.xml', payload)
+      headers = extensions_to_header extensions if extensions
+      http_response = @http.post('/transactions.xml', payload, headers: headers)
 
       case http_response
       when Net::HTTPSuccess
@@ -192,6 +195,7 @@ module ThreeScale
     #   usage::      predicted usage. It is optional. It is a hash where the keys are metrics
     #                and the values their predicted usage.
     #                Example: {'hits' => 1, 'my_metric' => 100}
+    #   extensions:: Optional. Hash of extension keys and values.
     #
     # == Return
     #
@@ -213,9 +217,11 @@ module ThreeScale
     #   end
     #
     def authorize(options)
+      extensions = options.delete :extensions
       path = "/transactions/authorize.xml" + options_to_params(options, ALL_PARAMS)
 
-      http_response = @http.get(path)
+      headers = extensions_to_header extensions if extensions
+      http_response = @http.get(path, headers: headers)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -262,9 +268,11 @@ module ThreeScale
     #   end
     #
     def oauth_authorize(options)
+      extensions = options.delete :extensions
       path = "/transactions/oauth_authorize.xml" + options_to_params(options, OAUTH_PARAMS)
 
-      http_response = @http.get(path)
+      headers = extensions_to_header extensions if extensions
+      http_response = @http.get(path, headers: headers)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
