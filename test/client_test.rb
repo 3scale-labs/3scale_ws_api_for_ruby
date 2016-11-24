@@ -267,7 +267,7 @@ class ThreeScale::ClientTest < MiniTest::Test
     # calls.
     urls = [:authorize, :authrep, :oauth_authorize].inject({}) do |acc, method|
       acc[method] = "http://#{@host}/transactions/#{method}.xml?"\
-                    "provider_key=1234abcd&app_id=foo&hierarchy=1"
+                    "provider_key=1234abcd&app_id=foo"
       acc[method] << "&%5Busage%5D%5Bhits%5D=1" if method == :authrep
       acc
     end
@@ -317,7 +317,7 @@ class ThreeScale::ClientTest < MiniTest::Test
 
     urls.each do |method, url|
       FakeWeb.register_uri(:get, url, :status => ['200', 'OK'], :body => body)
-      response = @client.send(method, :app_id => 'foo', :hierarchy => 1)
+      response = @client.send(method, :app_id => 'foo', extensions: { :hierarchy => 1 })
       assert_equal response.hierarchy, { 'parent1' => ['child1', 'child2'],
                                          'parent2' => ['child3'] }
     end
@@ -700,6 +700,56 @@ class ThreeScale::ClientTest < MiniTest::Test
     request = FakeWeb.last_request
     assert_equal "plugin-ruby-v#{version}", request["X-3scale-User-Agent"]
     assert_equal "su1.3scale.net", request["host"]
+  end
+
+  EXTENSIONS_HASH = { 'a special &=key' => 'a special =&value' }
+  private_constant :EXTENSIONS_HASH
+  EXTENSIONS_STR  = 'a%20special%20%26%3Dkey=a%20special%20%3D%26value'
+  private_constant :EXTENSIONS_STR
+
+  def test_authorize_with_extensions
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+            </status>'
+    FakeWeb.register_uri(:get,
+                         "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&app_id=foo",
+                         :status => ['200', 'OK'], body: body)
+
+    @client.authorize(:app_id => 'foo', extensions: EXTENSIONS_HASH)
+
+    request = FakeWeb.last_request
+    assert_equal EXTENSIONS_STR, request[ThreeScale::Client.const_get('EXTENSIONS_HEADER')]
+  end
+
+  def test_authrep_with_extensions
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+            </status>'
+    FakeWeb.register_uri(:get,
+                         "http://#{@host}/transactions/authrep.xml?provider_key=1234abcd&app_id=foo&%5Busage%5D%5Bhits%5D=1",
+                         :status => ['200', 'OK'], body: body)
+
+    @client.authrep(:app_id => 'foo', extensions: EXTENSIONS_HASH)
+
+    request = FakeWeb.last_request
+    assert_equal EXTENSIONS_STR, request['3scale-options']
+  end
+
+  def test_report_with_extensions
+    FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
+                         :status => ['200', 'OK'])
+
+    transactions = [{ :app_id    => 'app_id_1',
+                      :usage     => { 'hits' => 1 },
+                      :timestamp => '2016-07-18 15:42:17 0200' }]
+
+    @client.report(transactions: transactions, service_id: 'a_service_id',
+                   extensions: EXTENSIONS_HASH)
+
+    request = FakeWeb.last_request
+    assert_equal EXTENSIONS_STR, request['3scale-options']
   end
 
   private

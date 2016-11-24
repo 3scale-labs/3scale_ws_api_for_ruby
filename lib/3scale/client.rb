@@ -47,6 +47,9 @@ module ThreeScale
       'def report(transactions: [], service_id: nil).'.freeze
     private_constant :DEPRECATION_MSG_OLD_REPORT
 
+    EXTENSIONS_HEADER = '3scale-options'.freeze
+    private_constant :EXTENSIONS_HEADER
+
     def initialize(options)
       if options[:provider_key].nil? || options[:provider_key] =~ /^\s*$/
         raise ArgumentError, 'missing :provider_key'
@@ -69,6 +72,7 @@ module ThreeScale
 
       options_usage = options.delete :usage
       options_log   = options.delete :log
+      extensions    = options.delete :extensions
 
       options.each_pair do |param, value|
         path += "&#{param}=#{CGI.escape(value.to_s)}"
@@ -86,7 +90,8 @@ module ThreeScale
         path += "&#{log.join('&')}"
       end
 
-      http_response = @http.get(path)
+      headers = extensions_to_header extensions if extensions
+      http_response = @http.get(path, headers: headers)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -148,7 +153,7 @@ module ThreeScale
     # The signature of this method is a bit complicated because we decided to
     # keep backwards compatibility with a previous version of the method:
     # def report(*transactions)
-    def report(*reports, transactions: [], service_id: nil, **rest)
+    def report(*reports, transactions: [], service_id: nil, extensions: nil, **rest)
       if (!transactions || transactions.empty?) && rest.empty?
         raise ArgumentError, 'no transactions to report'
       end
@@ -164,7 +169,8 @@ module ThreeScale
       payload['provider_key'] = CGI.escape(provider_key)
       payload['service_id'] = CGI.escape(service_id.to_s) if service_id
 
-      http_response = @http.post('/transactions.xml', payload)
+      headers = extensions_to_header extensions if extensions
+      http_response = @http.post('/transactions.xml', payload, headers: headers)
 
       case http_response
       when Net::HTTPSuccess
@@ -189,6 +195,7 @@ module ThreeScale
     #   usage::      predicted usage. It is optional. It is a hash where the keys are metrics
     #                and the values their predicted usage.
     #                Example: {'hits' => 1, 'my_metric' => 100}
+    #   extensions:: Optional. Hash of extension keys and values.
     #
     # == Return
     #
@@ -210,9 +217,11 @@ module ThreeScale
     #   end
     #
     def authorize(options)
+      extensions = options.delete :extensions
       path = "/transactions/authorize.xml" + options_to_params(options, ALL_PARAMS)
 
-      http_response = @http.get(path)
+      headers = extensions_to_header extensions if extensions
+      http_response = @http.get(path, headers: headers)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -259,9 +268,11 @@ module ThreeScale
     #   end
     #
     def oauth_authorize(options)
+      extensions = options.delete :extensions
       path = "/transactions/oauth_authorize.xml" + options_to_params(options, OAUTH_PARAMS)
 
-      http_response = @http.get(path)
+      headers = extensions_to_header extensions if extensions
+      http_response = @http.get(path, headers: headers)
 
       case http_response
       when Net::HTTPSuccess,Net::HTTPConflict
@@ -275,10 +286,8 @@ module ThreeScale
 
     private
 
-    # The support for the 'hierarchy' param is experimental. Its support is not
-    # guaranteed for future versions.
-    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url, :usage, :hierarchy]
-    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage, :hierarchy]
+    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url, :usage]
+    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage]
     REPORT_PARAMS = [:user_key, :app_id, :service_id, :timestamp]
 
     def options_to_params(options, allowed_keys)
@@ -381,6 +390,25 @@ module ThreeScale
       response = klass.new
       response.error!(node.content.to_s.strip, node['code'].to_s.strip)
       response
+    end
+
+    # Encode extensions header
+    def extensions_to_header(extensions)
+      {
+        EXTENSIONS_HEADER => extensions.map do |hk, hv|
+          "#{extension_encode(hk.to_s)}=#{extension_encode(hv.to_s)}"
+        end.join('&'.freeze)
+      }
+    end
+
+    # This helper method effectively escapes URI unsafe and separator (&) and
+    # assignment (=) values. Must be fed just keys or values, not a string
+    # representing assignment or multiple parameters (which would need a
+    # separator).
+    def extension_encode(s)
+      URI.encode(s).split('%'.freeze).map do |sub_s|
+        CGI.escape sub_s
+      end.join('%'.freeze)
     end
   end
 end
