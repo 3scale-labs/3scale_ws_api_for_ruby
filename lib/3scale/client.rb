@@ -7,6 +7,7 @@ require '3scale/client/version'
 
 require '3scale/response'
 require '3scale/authorize_response'
+require '3scale/rack_query'
 
 module ThreeScale
   Error = Class.new(RuntimeError)
@@ -394,21 +395,7 @@ module ThreeScale
 
     # Encode extensions header
     def extensions_to_header(extensions)
-      {
-        EXTENSIONS_HEADER => extensions.map do |hk, hv|
-          "#{extension_encode(hk.to_s)}=#{extension_encode(hv.to_s)}"
-        end.join('&'.freeze)
-      }
-    end
-
-    # This helper method effectively escapes URI unsafe and separator (&) and
-    # assignment (=) values. Must be fed just keys or values, not a string
-    # representing assignment or multiple parameters (which would need a
-    # separator).
-    def extension_encode(s)
-      URI.encode(s).split('%'.freeze).map do |sub_s|
-        CGI.escape sub_s
-      end.join('%'.freeze)
+      { EXTENSIONS_HEADER => RackQuery.encode(extensions) }
     end
   end
 end

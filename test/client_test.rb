@@ -702,9 +702,18 @@ class ThreeScale::ClientTest < MiniTest::Test
     assert_equal "su1.3scale.net", request["host"]
   end
 
-  EXTENSIONS_HASH = { 'a special &=key' => 'a special =&value' }
+  EXTENSIONS_HASH = {
+    'a special &=key' => 'a special =&value',
+    'ary' => [1,2],
+    'a hash' => { one: 'one', two: 'two' },
+    'combined' =>
+      { v: 'v', nested: [1, { h: [ { hh: [ { hhh: :deep }, 'val' ] } ], h2: :h2 } ] }
+  }
   private_constant :EXTENSIONS_HASH
-  EXTENSIONS_STR  = 'a%20special%20%26%3Dkey=a%20special%20%3D%26value'
+  EXTENSIONS_STR  = "a+special+%26%3Dkey=a+special+%3D%26value&ary[]=1&ary[]=2&" \
+                    "a+hash[one]=one&a+hash[two]=two&combined[v]=v&" \
+                    "combined[nested][]=1&combined[nested][][h][][hh][][hhh]=deep&" \
+                    "combined[nested][][h][][hh][]=val&combined[nested][][h2]=h2".freeze
   private_constant :EXTENSIONS_STR
 
   def test_authorize_with_extensions
