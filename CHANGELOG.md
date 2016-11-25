@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.10.0] - 2016-11-25
+### Added
+- Added support for 3scale extensions (experimental or non-standard
+  features that are not part of the official API). You just need to
+  add the `:extensions` symbol and the value to the hash of options that
+  the client methods accept. The value is itself a hash containing the
+  parameter names as keys and the parameter values as values.
+
 ## [2.9.0] - 2016-10-21
 This version drops support for Ruby versions < 2.1 and JRuby < 9.1.1.0.
 
