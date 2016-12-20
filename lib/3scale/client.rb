@@ -7,7 +7,7 @@ require '3scale/client/version'
 
 require '3scale/response'
 require '3scale/authorize_response'
-require '3scale/rack_query'
+require '3scale/client/rack_query'
 
 module ThreeScale
   Error = Class.new(RuntimeError)
