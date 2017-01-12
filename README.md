@@ -36,6 +36,8 @@ Otherwise, require the gem in whatever way is natural to your framework of choic
 
 ## Usage
 
+> NOTE: `service_id` is mandatory since November 2016
+
 First, create an instance of the client, giving it your provider API key:
 
 ```ruby
@@ -67,14 +69,13 @@ This option requires installing gem `net-http-persistent`.
 Authrep is a 'one-shot' operation to authorize an application and report the associated transaction at the same time.
 The main difference between this call and the regular authorize call is that usage will be reported if the authorization is successful. Read more about authrep at the [active docs page on the 3scale's support site](https://support.3scale.net/reference/activedocs#operation/66)
 
-You can make request to this backend operation like this:
+You can make request to this backend operation using the "service_id" and "app_id" parameters, and optionally a key, like this:
 
 ```ruby
-response = client.authrep(:app_id => "the app id", :app_key => "the app key")
+response = client.authrep(:service_id => "the service id", :app_id => "the app id", :app_key => "the app key")
 ```
 
-Then call the +success?+ method on the returned object to see if the authorization was
-successful.
+Then call the +success?+ method on the returned object to see if the authorization was successful.
 
 ```ruby
 if response.success?
@@ -105,7 +106,8 @@ class ApplicationController < ActionController
   # The key needs to be a symbol.
   # A way to pass the metric is to add a parameter that will pass the name of the metric/method along
   def authenticate
-    response = create_client.authrep(:app_id => params["app_id"],
+    response = create_client.authrep(:service_id => params["service_id"],
+                                     :app_id => params["app_id"],
                                      :app_key => params["app_key"],
                                      :usage => { params[:metric].to_sym => 1 })
     if response.success?
@@ -122,15 +124,13 @@ end
 
 ### Authorize
 
-To authorize an application, call the +authorize+ method passing it the application's id and
-optionally a key:
+To authorize an application, call the +authorize+ method passing it the "service id" as well as the "application id" and optionally a key:
 
 ```ruby
-response = client.authorize(:app_id => "the app id", :app_key => "the app key")
+response = client.authorize(:service_id => "the service id", :app_id => "the app id", :app_key => "the app key")
 ```
 
-Then call the +success?+ method on the returned object to see if the authorization was
-successful.
+Then call the +success?+ method on the returned object to see if the authorization was successful.
 
 ```ruby
 if response.success?
@@ -140,16 +140,14 @@ else
 end
 ```
 
-If both provider key and app id are valid, the response object contains additional
-information about the status of the application:
+If both "provider key" and "app id" are valid, the response object contains additional information about the status of the application:
 
 ```ruby
 # Returns the name of the plan the application is signed up to.
 response.plan
 ```
 
-If the plan has defined usage limits, the response contains details about the usage broken
-down by the metrics and usage limit periods.
+If the plan has defined usage limits, the response contains details about the usage broken down by the metrics and usage limit periods.
 
 ```ruby
 # The usage_reports array contains one element per each usage limit defined on the plan.
@@ -173,8 +171,7 @@ usage_report.max_value     # 10000
 usage_report.exceeded?     # false
 ```
 
-If the authorization failed, the +error_code+ returns system error code and +error_message+
-human readable error description:
+If the authorization failed, the +error_code+ returns system error code and +error_message+ human readable error description:
 
 ```ruby
 response.error_code    # "usage_limits_exceeded"
@@ -183,10 +180,10 @@ response.error_message # "Usage limits are exceeded"
 
 ### OAuth Authorize
 
-To authorize an application with OAuth, call the +oauth_authorize+ method passing it the application's id.
+To authorize an application with OAuth, call the +oauth_authorize+ method passing it  the "service id" and the "application id".
 
 ```ruby
-response = client.oauth_authorize(:app_id => "the app id")
+response = client.oauth_authorize(:service_id => "the service id", :app_id => "the app id")
 ```
 
 If the authorization is successful, the response will contain the +app_key+ and +redirect_url+ defined for this application:
@@ -203,19 +200,11 @@ To report usage, use the +report+ method. You can report multiple transactions a
 ```ruby
 response = client.report(
   :transactions => [{:app_id => "first app id",  :usage => {'hits' => 1}},
-                    {:app_id => "second app id", :usage => {'hits' => 1}}])
-```
-
-To specify a service other than the default one:
-```ruby
-response = client.report(
-  :transactions => [{:app_id => "first app id",  :usage => {'hits' => 1}},
                     {:app_id => "second app id", :usage => {'hits' => 1}}],
-  :service_id => 'service_123')
+  :service_id => "the service id")
 ```
 
-The :app_id and :usage parameters are required. Additionaly, you can specify a timestamp
-of a transaction:
+The `:app_id` and `:usage parameters are required. Additionally, you can specify a timestamp of a transaction:
 
 ```ruby
 response = client.report(
@@ -224,19 +213,15 @@ response = client.report(
                      :timestamp => Time.local(2010, 4, 28, 12, 36)}])
 ```
 
-The timestamp can be either a Time object (from ruby's standard library) or something that
-"quacks" like it (for example, the ActiveSupport::TimeWithZone from Rails) or a string. The
-string has to be in a format parseable by the Time.parse method. For example:
+The timestamp can be either a Time object (from ruby's standard library) or something that "quacks" like it (for example, the ActiveSupport::TimeWithZone from Rails) or a string. The string has to be in a format parseable by the Time.parse method. For example:
 
 ```ruby
 "2010-04-28 12:38:33 +0200"
 ```
 
-If the timestamp is not in UTC, you have to specify a time offset. That's the "+0200"
-(two hours ahead of the Universal Coordinate Time) in the example abowe.
+If the timestamp is not in UTC, you have to specify a time offset. That's the "+0200" (two hours ahead of the Universal Coordinate Time) in the example abowe.
 
-Then call the +success?+ method on the returned response object to see if the report was
-successful.
+Then call the +success?+ method on the returned response object to see if the report was successful.
 
 ```ruby
   if response.success?
@@ -246,8 +231,7 @@ successful.
   end
 ```
 
-In case of error, the +error_code+ returns system error code and +error_message+
-human readable error description:
+In case of error, the +error_code+ returns system error code and +error_message+ human readable error description:
 
 ```ruby
 response.error_code    # "provider_key_invalid"
