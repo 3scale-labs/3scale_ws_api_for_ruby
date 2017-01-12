@@ -36,6 +36,8 @@ Otherwise, require the gem in whatever way is natural to your framework of choic
 
 ## Usage
 
+> NOTE: `service_id` is mandatory since November 2016
+
 First, create an instance of the client, giving it your provider API key:
 
 ```ruby
@@ -122,7 +124,7 @@ end
 
 ### Authorize
 
-To authorize an application, call the +authorize+ method passing it the service id as well as the application's id and optionally a key:
+To authorize an application, call the +authorize+ method passing it the "service id" as well as the "application id" and optionally a key:
 
 ```ruby
 response = client.authorize(:service_id => "the service id", :app_id => "the app id", :app_key => "the app key")
@@ -138,15 +140,14 @@ else
 end
 ```
 
-If both provider key and app id are valid, the response object contains additional information about the status of the application:
+If both "provider key" and "app id" are valid, the response object contains additional information about the status of the application:
 
 ```ruby
 # Returns the name of the plan the application is signed up to.
 response.plan
 ```
 
-If the plan has defined usage limits, the response contains details about the usage broken
-down by the metrics and usage limit periods.
+If the plan has defined usage limits, the response contains details about the usage broken down by the metrics and usage limit periods.
 
 ```ruby
 # The usage_reports array contains one element per each usage limit defined on the plan.
@@ -170,8 +171,7 @@ usage_report.max_value     # 10000
 usage_report.exceeded?     # false
 ```
 
-If the authorization failed, the +error_code+ returns system error code and +error_message+
-human readable error description:
+If the authorization failed, the +error_code+ returns system error code and +error_message+ human readable error description:
 
 ```ruby
 response.error_code    # "usage_limits_exceeded"
@@ -180,7 +180,7 @@ response.error_message # "Usage limits are exceeded"
 
 ### OAuth Authorize
 
-To authorize an application with OAuth, call the +oauth_authorize+ method passing it service's id and application's id.
+To authorize an application with OAuth, call the +oauth_authorize+ method passing it  the "service id" and the "application id".
 
 ```ruby
 response = client.oauth_authorize(:service_id => "the service id", :app_id => "the app id")
@@ -204,7 +204,7 @@ response = client.report(
   :service_id => "the service id")
 ```
 
-The :app_id and :usage parameters are required. Additionally, you can specify a timestamp of a transaction:
+The `:app_id` and `:usage parameters are required. Additionally, you can specify a timestamp of a transaction:
 
 ```ruby
 response = client.report(
