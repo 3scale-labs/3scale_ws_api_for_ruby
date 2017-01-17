@@ -42,6 +42,9 @@ module ThreeScale
   class Client
     DEFAULT_HOST = 'su1.3scale.net'
 
+    DEPRECATION_MSG_PROVIDER_KEY = 'provider keys are deprecated - ' \
+      'please switch at your earliest convenience to use service tokens'.freeze
+    private_constant :DEPRECATION_MSG_PROVIDER_KEY
     DEPRECATION_MSG_OLD_REPORT = 'warning: def report(*transactions) is '\
       'deprecated. In next versions, the signature of the report method is '\
       'going to be: '\
@@ -52,24 +55,30 @@ module ThreeScale
     private_constant :EXTENSIONS_HEADER
 
     def initialize(options)
-      if options[:provider_key].nil? || options[:provider_key] =~ /^\s*$/
-        raise ArgumentError, 'missing :provider_key'
-      end
-
       @provider_key = options[:provider_key]
+      @service_tokens = options[:service_tokens]
+
+      @creds_params = if @service_tokens
+                        "service_token="
+                      elsif @provider_key
+                        warn DEPRECATION_MSG_PROVIDER_KEY
+                        "provider_key=#{CGI.escape @provider_key}"
+                      else
+                        raise ArgumentError, 'missing credentials - either use "service_tokens: true" or specify a provider_key value'
+                      end
 
       @host = options[:host] ||= DEFAULT_HOST
 
       @http = ThreeScale::Client::HTTPClient.new(options)
     end
 
-    attr_reader :provider_key, :host, :http
+    attr_reader :provider_key, :service_tokens, :host, :http
 
     # Authorize and report an application.
     # TODO (in the mean time read authorize comments or head over to https://support.3scale.net/reference/activedocs#operation/66 for details
     #
     def authrep(options)
-      path = "/transactions/authrep.xml?provider_key=#{CGI.escape(provider_key)}"
+      path = "/transactions/authrep.xml?#{creds_params(options)}"
 
       options_usage = options.delete :usage
       options_log   = options.delete :log
@@ -154,7 +163,7 @@ module ThreeScale
     # The signature of this method is a bit complicated because we decided to
     # keep backwards compatibility with a previous version of the method:
     # def report(*transactions)
-    def report(*reports, transactions: [], service_id: nil, extensions: nil, **rest)
+    def report(*reports, transactions: [], service_id: nil, extensions: nil, service_token: nil, **rest)
       if (!transactions || transactions.empty?) && rest.empty?
         raise ArgumentError, 'no transactions to report'
       end
@@ -167,7 +176,12 @@ module ThreeScale
       end
 
       payload = encode_transactions(transactions)
-      payload['provider_key'] = CGI.escape(provider_key)
+      if @service_tokens
+        raise ArgumentError, "service_token or service_id not specified" unless service_token && service_id
+        payload['service_token'] = CGI.escape(service_token)
+      else
+        payload['provider_key'] = CGI.escape(@provider_key)
+      end
       payload['service_id'] = CGI.escape(service_id.to_s) if service_id
 
       headers = extensions_to_header extensions if extensions
@@ -219,7 +233,8 @@ module ThreeScale
     #
     def authorize(options)
       extensions = options.delete :extensions
-      path = "/transactions/authorize.xml" + options_to_params(options, ALL_PARAMS)
+      creds = creds_params(options)
+      path = "/transactions/authorize.xml" + options_to_params(options, ALL_PARAMS) + '&' + creds
 
       headers = extensions_to_header extensions if extensions
       http_response = @http.get(path, headers: headers)
@@ -270,7 +285,8 @@ module ThreeScale
     #
     def oauth_authorize(options)
       extensions = options.delete :extensions
-      path = "/transactions/oauth_authorize.xml" + options_to_params(options, OAUTH_PARAMS)
+      creds = creds_params(options)
+      path = "/transactions/oauth_authorize.xml" + options_to_params(options, OAUTH_PARAMS) + '&' + creds
 
       headers = extensions_to_header extensions if extensions
       http_response = @http.get(path, headers: headers)
@@ -291,8 +307,19 @@ module ThreeScale
     ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage]
     REPORT_PARAMS = [:user_key, :app_id, :service_id, :timestamp]
 
+    def creds_params(options)
+      if @service_tokens
+        token = options.delete(:service_token)
+        service_id = options[:service_id]
+        raise ArgumentError, "need to specify a service_token and a service_id" unless token && service_id
+        @creds_params + CGI.escape(token)
+      else
+        @creds_params
+      end
+    end
+
     def options_to_params(options, allowed_keys)
-      params = { :provider_key  => provider_key }
+      params = {}
 
       (allowed_keys - [:usage]).each do |key|
         params[key] = options[key] if options.has_key?(key)
