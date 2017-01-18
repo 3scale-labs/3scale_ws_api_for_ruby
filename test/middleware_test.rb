@@ -39,7 +39,7 @@ class ThreeScale::MiddlewareTest < MiniTest::Test
   def test_nil_authenticator
     authenticator = ThreeScale::Middleware::NilAuthenticator.new(mock)
     assert authenticator.provided?
-    assert_equal(nil, authenticator.credentials)
+    assert_nil authenticator.credentials
     assert authenticator.to_proc.call(nil, nil)
   end
 end
