@@ -25,9 +25,9 @@ module ThreeScale
   #
   # == Example
   #
-  #   client = ThreeScale::Client.new(:provider_key => "your provider key")
+  #   client = ThreeScale::Client.new(service_tokens: true)
   #
-  #   response = client.authorize(:app_id => "an app id", :app_key => "a secret key")
+  #   response = client.authorize(service_token: 'token', service_id: '123', app_id: 'an app id', app_key: 'a secret key')
   #
   #   if response.success?
   #     response = client.report(:app_id => "some app id", :usage => {"hits" => 1})
@@ -38,6 +38,9 @@ module ThreeScale
   #       # something's wrong.
   #     end
   #   end
+  #
+  #   Note: Provider Keys are deprecated in favor of Service Tokens with Service IDs
+  #         The next major release of this client will default to use Service Tokens.
   #
   class Client
     DEFAULT_HOST = 'su1.3scale.net'
@@ -117,9 +120,9 @@ module ThreeScale
     #
     # == Parameters
     #
-    # Hash with two fields:
+    # Hash with up to three fields:
     #
-    #   transactions:: It is required. It is an enumerable. Each element is a hash with the fields:
+    #   transactions::   Required. Enumerable. Each element is a hash with the fields:
     #         app_id:    ID of the application to report the transaction for. This parameter is
     #                    required.
     #         usage:     Hash of usage values. The keys are metric names and values are
@@ -132,8 +135,9 @@ module ThreeScale
     #                    from the UTC. For example, "US Pacific Time" has offset -0800, "Tokyo"
     #                    has offset +0900. This parameter is optional, and if not provided, equals
     #                    to the current time.
-    #   service_id::   ID of the service. It is optional. When not specified, the transactions
-    #                  are reported to the default service.
+    #   service_id::     ID of the service. It is optional. When not specified, the transactions
+    #                    are reported to the default service.
+    #   service_token::  Token granting access to the specified service ID.
     #
     # == Return
     #
@@ -203,14 +207,15 @@ module ThreeScale
     #
     # Hash with options:
     #
-    #   app_id::     id of the application to authorize. This is required.
-    #   app_key::    secret key assigned to the application. Required only if application has
-    #                a key defined.
-    #   service_id:: id of the service (required if you have more than one service)
-    #   usage::      predicted usage. It is optional. It is a hash where the keys are metrics
-    #                and the values their predicted usage.
-    #                Example: {'hits' => 1, 'my_metric' => 100}
-    #   extensions:: Optional. Hash of extension keys and values.
+    #   service_token:: token granting access to the specified service_id.
+    #   app_id::        id of the application to authorize. This is required.
+    #   app_key::       secret key assigned to the application. Required only if application has
+    #                   a key defined.
+    #   service_id::    id of the service (required if you have more than one service)
+    #   usage::         predicted usage. It is optional. It is a hash where the keys are metrics
+    #                   and the values their predicted usage.
+    #                   Example: {'hits' => 1, 'my_metric' => 100}
+    #   extensions::    Optional. Hash of extension keys and values.
     #
     # == Return
     #
@@ -255,11 +260,12 @@ module ThreeScale
     #
     # Hash with options:
     #
-    #   app_id::  id of the application to authorize. This is required.
-    #   service_id:: id of the service (required if you have more than one service)
-    #   usage::      predicted usage. It is optional. It is a hash where the keys are metrics
-    #                and the values their predicted usage.
-    #                Example: {'hits' => 1, 'my_metric' => 100}
+    #   service_token:: token granting access to the specified service_id.
+    #   app_id::        id of the application to authorize. This is required.
+    #   service_id::    id of the service (required if you have more than one service)
+    #   usage::         predicted usage. It is optional. It is a hash where the keys are metrics
+    #                   and the values their predicted usage.
+    #                   Example: {'hits' => 1, 'my_metric' => 100}
     #
     # == Return
     #
