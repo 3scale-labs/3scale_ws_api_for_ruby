@@ -19,10 +19,18 @@ class ThreeScale::ClientTest < MiniTest::Test
     @host   = ThreeScale::Client::DEFAULT_HOST
   end
 
-  def test_raises_exception_if_provider_key_is_missing
+  def test_raises_exception_if_no_credentials_are_specified
     assert_raises ArgumentError do
       ThreeScale::Client.new({})
     end
+    assert_raises ArgumentError do
+      ThreeScale::Client.new(service_tokens: false)
+    end
+  end
+
+  def test_does_not_raise_if_some_credentials_are_specified
+    assert ThreeScale::Client.new(provider_key: 'some_key')
+    assert ThreeScale::Client.new(service_tokens: true)
   end
 
   def test_default_host
@@ -759,6 +767,56 @@ class ThreeScale::ClientTest < MiniTest::Test
 
     request = FakeWeb.last_request
     assert_equal EXTENSIONS_STR, request['3scale-options']
+  end
+
+  def test_client_initialized_with_sevice_tokens_uses_percall_specified_token
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+            </status>'
+    transactions = [{ app_id:    'foo',
+                      timestamp: Time.local(2010, 4, 27, 15, 00),
+                      usage:     {'hits' => 1 } }]
+    usage = { 'metric1' => 1, 'metric2' => 2}
+
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authorize.xml?user_key=foo&service_id=1&service_token=newtoken", status: ['200', 'OK'], body: body)
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/authrep.xml?service_token=newtoken&user_key=foo&service_id=1&%5Busage%5D%5Bhits%5D=1", status: ['200', 'OK'], body: body)
+    FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml", parameters: {service_token: 'newtoken', service_id: '1', transactions: transactions}, status: ['200', 'OK'])
+    FakeWeb.register_uri(:get, "http://#{@host}/transactions/oauth_authorize.xml?service_id=1&%5Busage%5D%5Bmetric1%5D=1&%5Busage%5D%5Bmetric2%5D=2&service_token=newtoken",
+                         status: ['200', 'OK'], body: body)
+
+    client = ThreeScale::Client.new(service_tokens: true)
+
+    response = client.authorize(user_key: 'foo', service_token: 'newtoken', service_id: 1)
+    assert response.success?
+    response = client.authrep(user_key: 'foo', service_token: 'newtoken', service_id: 1)
+    assert response.success?
+    response = client.report(transactions: transactions, service_token: 'newtoken', service_id: 1)
+    assert response.success?
+    response = client.oauth_authorize(access_token: 'oauth', usage: usage, service_token: 'newtoken', service_id: 1)
+    assert response.success?
+  end
+
+  def test_client_initialized_with_service_tokens_raises_if_unspecified_percall
+    transactions = [{ app_id:    'foo',
+                      timestamp: Time.local(2010, 4, 27, 15, 00),
+                      usage:     {'hits' => 1 } }]
+    usage = { 'metric1' => 1, 'metric2' => 2}
+
+    client = ThreeScale::Client.new(service_tokens: true)
+
+    assert_raises ArgumentError do
+      client.authorize(user_key: 'foo', service_id: 1)
+    end
+    assert_raises ArgumentError do
+      client.authrep(user_key: 'foo', service_id: 1)
+    end
+    assert_raises ArgumentError do
+      client.report(transactions: transactions, service_id: 1)
+    end
+    assert_raises ArgumentError do
+      client.oauth_authorize(user_key: 'foo', usage: usage, service_id: 1)
+    end
   end
 
   private
