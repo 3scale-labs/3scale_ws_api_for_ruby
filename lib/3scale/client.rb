@@ -60,6 +60,7 @@ module ThreeScale
     def initialize(options)
       @provider_key = options[:provider_key]
       @service_tokens = options[:service_tokens]
+      @warn_deprecated = options.fetch(:warn_deprecated, true)
 
       generate_creds_params
 
@@ -168,7 +169,7 @@ module ThreeScale
       transactions = transactions.concat(reports)
 
       unless rest.empty?
-        warn(DEPRECATION_MSG_OLD_REPORT)
+        warn DEPRECATION_MSG_OLD_REPORT if @warn_deprecated
         transactions.concat([rest])
       end
 
@@ -424,7 +425,7 @@ module ThreeScale
             'service_token='.freeze + CGI.escape(token)
           end
         elsif @provider_key
-          warn DEPRECATION_MSG_PROVIDER_KEY
+          warn DEPRECATION_MSG_PROVIDER_KEY if @warn_deprecated
           lambda do |_|
             "provider_key=#{CGI.escape @provider_key}".freeze
           end
