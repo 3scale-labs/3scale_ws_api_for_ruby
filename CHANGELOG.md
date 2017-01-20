@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.11.0] - 2017-01-20
+### Added
+- Added support for (Service Tokens)[https://support.3scale.net/docs/accounts/tokens]
+  Just instantiate the client with `ThreeScale::Client.new(service_tokens: true)`
+  and specify in each call the `service_token` and `service_id` parameters.
+- Deprecated usage of `provider_key` when instantiating the client.
+- Deprecated usage of the provided Rack Auth middleware. You should write your own.
+- Added optional parameter `warn_deprecated` defaulting to `true` to be able to
+  opt out of deprecation warnings. It is encouraged to not turn this off unless
+  you are sure you understand all deprecation warnings you get, and even so good
+  practice suggests you should turn it back on each time you upgrade this client
+  to check for new warnings.
+
 ## [2.10.0] - 2016-11-25
 ### Added
 - Added support for 3scale extensions (experimental or non-standard
