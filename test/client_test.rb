@@ -7,8 +7,11 @@ require '3scale/client'
 
 class ThreeScale::ClientTest < MiniTest::Test
 
+  WARN_DEPRECATED = ENV['WARN_DEPRECATED'] == '1'
+
   def client(options = {})
-    ThreeScale::Client.new({:provider_key => '1234abcd'}.merge(options))
+    ThreeScale::Client.new({ provider_key: '1234abcd',
+                             warn_deprecated: WARN_DEPRECATED }.merge(options))
   end
 
   def setup
@@ -29,34 +32,43 @@ class ThreeScale::ClientTest < MiniTest::Test
   end
 
   def test_does_not_raise_if_some_credentials_are_specified
-    assert ThreeScale::Client.new(provider_key: 'some_key')
+    assert ThreeScale::Client.new(provider_key: 'some_key',
+                                  warn_deprecated: WARN_DEPRECATED)
     assert ThreeScale::Client.new(service_tokens: true)
   end
 
   def test_default_host
-    client = ThreeScale::Client.new(:provider_key => '1234abcd')
+    client = ThreeScale::Client.new(provider_key: '1234abcd',
+                                    warn_deprecated: WARN_DEPRECATED)
 
     assert_equal 'su1.3scale.net', client.host
   end
 
   def test_custom_host
-    client = ThreeScale::Client.new(:provider_key => '1234abcd', :host => "example.com")
+    client = ThreeScale::Client.new(provider_key: '1234abcd',
+                                    warn_deprecated: WARN_DEPRECATED,
+                                    host: "example.com")
 
     assert_equal 'example.com', client.host
   end
 
   def test_default_protocol
-    client = ThreeScale::Client.new(:provider_key => 'test')
+    client = ThreeScale::Client.new(provider_key: 'test',
+                                    warn_deprecated: WARN_DEPRECATED)
     assert_equal false, client.http.use_ssl?
   end
 
   def test_insecure_protocol
-    client = ThreeScale::Client.new(:provider_key => 'test', :secure => false)
+    client = ThreeScale::Client.new(provider_key: 'test',
+                                    warn_deprecated: WARN_DEPRECATED,
+                                    secure: false)
     assert_equal false, client.http.use_ssl?
   end
 
   def test_secure_protocol
-    client = ThreeScale::Client.new(:provider_key => 'test', :secure => true)
+    client = ThreeScale::Client.new(provider_key: 'test',
+                                    warn_deprecated: WARN_DEPRECATED,
+                                    secure: true)
     assert_equal true, client.http.use_ssl?
   end
 
@@ -639,7 +651,8 @@ class ThreeScale::ClientTest < MiniTest::Test
                          :status => ['403', 'Forbidden'],
                          :body   => error_body)
 
-    client   = ThreeScale::Client.new(:provider_key => 'foo')
+    client   = ThreeScale::Client.new(provider_key: 'foo',
+                                      warn_deprecated: WARN_DEPRECATED)
     transactions = [{ :app_id => 'abc', :usage => { 'hits' => 1 } }]
     response = client.report(transactions: transactions)
 
@@ -667,7 +680,8 @@ class ThreeScale::ClientTest < MiniTest::Test
                          :status => ['200', 'OK'],
                          :body   => success_body)
 
-    client = ThreeScale::Client.new(:provider_key => 'foo')
+    client = ThreeScale::Client.new(provider_key: 'foo',
+                                    warn_deprecated: WARN_DEPRECATED)
     response = client.authorize(:app_id => 'foo')
 
     assert response.success?
@@ -684,7 +698,8 @@ class ThreeScale::ClientTest < MiniTest::Test
     FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
                          :status => ['200', 'OK'],
                          :body   => success_body)
-    client = ThreeScale::Client.new(:provider_key => 'foo')
+    client = ThreeScale::Client.new(provider_key: 'foo',
+                                    warn_deprecated: WARN_DEPRECATED)
     transactions = [{ :app_id => 'abc', :usage => { 'hits' => 1 } }]
     client.report(transactions: transactions)
 
@@ -700,7 +715,8 @@ class ThreeScale::ClientTest < MiniTest::Test
                          :status => ['200', 'OK'],
                          :body   => success_body)
 
-    client = ThreeScale::Client.new(:provider_key => 'foo')
+    client = ThreeScale::Client.new(provider_key: 'foo',
+                                    warn_deprecated: WARN_DEPRECATED)
     response = client.authrep(:app_id => 'abc')
 
     assert response.success?
@@ -847,7 +863,10 @@ end
 class ThreeScale::NetHttpPersistentClientTest < ThreeScale::ClientTest
   def client(options = {})
     ThreeScale::Client::HTTPClient.persistent_backend = ThreeScale::Client::HTTPClient::NetHttpPersistent
-    ThreeScale::Client.new({:provider_key => '1234abcd', :persistent => true}.merge(options))
+    ThreeScale::Client.new({ provider_key: '1234abcd',
+                             warn_deprecated: WARN_DEPRECATED,
+                             persistent: true,
+                           }.merge(options))
   end
 end
 

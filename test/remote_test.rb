@@ -5,6 +5,8 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
    ENV['TEST_3SCALE_APP_IDS']      &&
    ENV['TEST_3SCALE_APP_KEYS']
   class ThreeScale::RemoteTest < MiniTest::Test
+    WARN_DEPRECATED = ENV['WARN_DEPRECATED'] == '1'
+
     def setup
       @provider_key = ENV['TEST_3SCALE_PROVIDER_KEY']
 
@@ -13,7 +15,8 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
       @app_ids  = ENV['TEST_3SCALE_APP_IDS'].split(',').map(&stripper)
       @app_keys = ENV['TEST_3SCALE_APP_KEYS'].split(',').map(&stripper)
 
-      @client = ThreeScale::Client.new(:provider_key => @provider_key)
+      @client = ThreeScale::Client.new(provider_key: @provider_key,
+                                       warn_deprecated: WARN_DEPRECATED)
 
       if defined?(FakeWeb)
         FakeWeb.clean_registry
@@ -39,7 +42,9 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
     end
 
     def test_successful_secure_authrep
-      @client = ThreeScale::Client.new(:provider_key => @provider_key, :secure => true)
+      @client = ThreeScale::Client.new(provider_key: @provider_key,
+                                       warn_deprecated: WARN_DEPRECATED,
+                                       secure: true)
       test_successful_authrep
     end
 
@@ -96,7 +101,8 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
         {:app_id => app_id, :usage => {'hits' => 1}}
       end
 
-      client   = ThreeScale::Client.new(:provider_key => 'invalid-key')
+      client   = ThreeScale::Client.new(provider_key: 'invalid-key',
+                                        warn_deprecated: WARN_DEPRECATED)
       response = client.report(transactions: transactions)
       assert !response.success?
       assert_equal 'provider_key_invalid',                  response.error_code
