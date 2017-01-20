@@ -61,14 +61,7 @@ module ThreeScale
       @provider_key = options[:provider_key]
       @service_tokens = options[:service_tokens]
 
-      @creds_params = if @service_tokens
-                        "service_token="
-                      elsif @provider_key
-                        warn DEPRECATION_MSG_PROVIDER_KEY
-                        "provider_key=#{CGI.escape @provider_key}"
-                      else
-                        raise ArgumentError, 'missing credentials - either use "service_tokens: true" or specify a provider_key value'
-                      end
+      generate_creds_params
 
       @host = options[:host] ||= DEFAULT_HOST
 
@@ -313,17 +306,6 @@ module ThreeScale
     ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage]
     REPORT_PARAMS = [:user_key, :app_id, :service_id, :timestamp]
 
-    def creds_params(options)
-      if @service_tokens
-        token = options.delete(:service_token)
-        service_id = options[:service_id]
-        raise ArgumentError, "need to specify a service_token and a service_id" unless token && service_id
-        @creds_params + CGI.escape(token)
-      else
-        @creds_params
-      end
-    end
-
     def options_to_params(options, allowed_keys)
       params = {}
 
@@ -429,6 +411,26 @@ module ThreeScale
     # Encode extensions header
     def extensions_to_header(extensions)
       { EXTENSIONS_HEADER => RackQuery.encode(extensions) }
+    end
+
+    # helper to generate the creds_params method
+    def generate_creds_params
+      define_singleton_method :creds_params,
+        if @service_tokens
+          lambda do |options|
+            token = options.delete(:service_token)
+            service_id = options[:service_id]
+            raise ArgumentError, "need to specify a service_token and a service_id" unless token && service_id
+            'service_token='.freeze + CGI.escape(token)
+          end
+        elsif @provider_key
+          warn DEPRECATION_MSG_PROVIDER_KEY
+          lambda do |_|
+            "provider_key=#{CGI.escape @provider_key}".freeze
+          end
+        else
+          raise ArgumentError, 'missing credentials - either use "service_tokens: true" or specify a provider_key value'
+        end
     end
   end
 end
