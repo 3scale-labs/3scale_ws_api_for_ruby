@@ -5,6 +5,8 @@ require 'mocha/setup'
 
 if ENV['TEST_3SCALE_PROVIDER_KEY'] && ENV['TEST_3SCALE_APP_IDS'] && ENV['TEST_3SCALE_APP_KEYS']
   class ThreeScale::NetHttpPersistenceTest < MiniTest::Test
+    WARN_DEPRECATED = ENV['WARN_DEPRECATED'] == '1'
+
     def setup
       ThreeScale::Client::HTTPClient.persistent_backend = ThreeScale::Client::HTTPClient::NetHttpPersistent
 
@@ -13,7 +15,9 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] && ENV['TEST_3SCALE_APP_IDS'] && ENV['TEST_3S
       @app_id = ENV['TEST_3SCALE_APP_IDS']
       @app_key = ENV['TEST_3SCALE_APP_KEYS']
 
-      @client = ThreeScale::Client.new(provider_key: provider_key, persistence: true)
+      @client = ThreeScale::Client.new(provider_key: provider_key,
+				       warn_deprecated: WARN_DEPRECATED,
+                                       persistence: true)
 
       if defined?(FakeWeb)
         FakeWeb.allow_net_connect = true

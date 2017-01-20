@@ -2,12 +2,21 @@ require 'benchmark'
 
 require '3scale/client'
 
-provider_key = ENV['TEST_3SCALE_PROVIDER_KEY']
+provider_key = ENV['TEST_3SCALE_PROVIDER_KEY'] or raise 'No provider key set'
+warn_deprecated = ENV['WARN_DEPRECATED'] == '1'
 
-client = ThreeScale::Client.new(:provider_key => provider_key)
-persistent_client = ThreeScale::Client.new(:provider_key => provider_key, :persistent => true)
-persistent_ssl_client = ThreeScale::Client.new(:provider_key => provider_key, :secure => true, :persistent => true)
-ssl_client = ThreeScale::Client.new(:provider_key => provider_key, :secure => true)
+client = ThreeScale::Client.new(provider_key: provider_key,
+                                warn_deprecated: warn_deprecated)
+persistent_client = ThreeScale::Client.new(provider_key: provider_key,
+                                           warn_deprecated: warn_deprecated,
+                                           persistent: true)
+persistent_ssl_client = ThreeScale::Client.new(provider_key: provider_key,
+					       warn_deprecated: warn_deprecated,
+                                               secure: true,
+                                               persistent: true)
+ssl_client = ThreeScale::Client.new(provider_key: provider_key,
+                                    warn_deprecated: warn_deprecated,
+                                    secure: true)
 
 auth = { :app_id => ENV['TEST_3SCALE_APP_IDS'], :app_key => ENV['TEST_3SCALE_APP_KEYS'] }
 
