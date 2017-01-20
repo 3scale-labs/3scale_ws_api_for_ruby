@@ -66,6 +66,9 @@ client.authrep(service_id: '123', usage: usage)
 > NOTE: `service_id` is mandatory since November 2016, both when using service
 tokens and when using provider keys
 
+> NOTE: You might use the option `warn_deprecated: false` to avoid deprecation
+warnings. This is enabled by default.
+
 ### SSL and Persistence
 
 Starting with version 2.4.0 you can use two more options: `secure` and `persistent` like:
