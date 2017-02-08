@@ -6,8 +6,8 @@
 3scale is an API Infrastructure service which handles API Keys, Rate Limiting, Analytics, Billing Payments and Developer Management. Includes a configurable API dashboard and developer portal CMS. More product stuff at http://www.3scale.net/, support information at http://support.3scale.net/.
 
 ### Tutorials
-* Plugin Setup: https://support.3scale.net/howtos/api-configuration/plugin-setup
-* Rate Limiting: https://support.3scale.net/howtos/basics/provision-rate-limits
+* Plugin Setup: https://support.3scale.net/docs/deployment-options/plugin-setup
+* Rate Limiting: https://support.3scale.net/docs/access-control/rate-limits
 * Analytics Setup: https://support.3scale.net/quickstarts/3scale-api-analytics
 
 ## Installation
