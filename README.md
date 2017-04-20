@@ -39,13 +39,25 @@ Otherwise, require the gem in whatever way is natural to your framework of choic
 First, create an instance of the client:
 
 ```ruby
-ThreeScale::Client.new(service_tokens: true)
+client = ThreeScale::Client.new(service_tokens: true)
 ```
 
 > NOTE: unless you specify `service_tokens: true` you will be expected to specify
 a `provider_key` parameter, which is deprecated in favor of Service Tokens:
 ```ruby
 client = ThreeScale::Client.new(provider_key: 'your_provider_key')
+```
+This will comunicate with the 3scale platform SaaS default server. 
+
+If you want to create a client with a given host and port when connecting to an on-premise instance of the 3scale platform, you can specify them when creating the instance: 
+```ruby
+client = ThreeScale::Client.new(service_tokens: true, host: 'service_management_api.example.com', port: 80)
+```
+
+or
+
+```ruby
+client = ThreeScale::Client.new(provider_key: 'your_provider_key', host: 'service_management_api.example.com', port: 80)
 ```
 
 Because the object is stateless, you can create just one and store it globally.
