@@ -54,7 +54,7 @@ If you want to create a client with a given host and port when connecting to an 
 client = ThreeScale::Client.new(service_tokens: true, host: 'service_management_api.example.com', port: 80)
 ```
 
-or
+or if you used a provider key:
 
 ```ruby
 client = ThreeScale::Client.new(provider_key: 'your_provider_key', host: 'service_management_api.example.com', port: 80)
