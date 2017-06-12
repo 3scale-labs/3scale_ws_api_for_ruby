@@ -107,6 +107,12 @@ class ThreeScale::ClientTest < MiniTest::Test
     @client.authrep(:service_id => "serviceid")
   end
 
+  def test_authrep_supports_user_id
+    assert_authrep_url_with_params "&%5Busage%5D%5Bhits%5D=1&service_id=serviceid&user_id=a_user_id"
+
+    @client.authrep(:service_id => "serviceid", :user_id => "a_user_id")
+  end
+
   #TODO these authrep tests
   # def test_authrep_supports_api_key_auth_mode; end
   # def test_authrep_log_is_encoded;end
