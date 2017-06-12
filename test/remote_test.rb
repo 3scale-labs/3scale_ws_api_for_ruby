@@ -104,9 +104,12 @@ if ENV['TEST_3SCALE_PROVIDER_KEY'] &&
       client   = ThreeScale::Client.new(provider_key: 'invalid-key',
                                         warn_deprecated: WARN_DEPRECATED)
       response = client.report(transactions: transactions)
+
       assert !response.success?
-      assert_equal 'provider_key_invalid',                  response.error_code
-      assert_equal 'provider key "invalid-key" is invalid', response.error_message
+      assert_equal 'provider_key_invalid_or_service_missing',
+                   response.error_code
+      assert_equal 'provider key "invalid-key" invalid and/or service ID missing',
+                   response.error_message
     end
   end
 
