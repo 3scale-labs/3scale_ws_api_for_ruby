@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+### Added
+- Added support for user IDs in authorize and report calls.
+
 ## [2.11.0] - 2017-01-20
 ### Added
 - Added support for (Service Tokens)[https://support.3scale.net/docs/accounts/tokens]
