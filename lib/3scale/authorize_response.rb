@@ -35,15 +35,18 @@ module ThreeScale
     private_constant :LIMITS_EXCEEDED_MSG
 
     attr_accessor :plan
+    attr_accessor :user_plan
     attr_accessor :app_key
     attr_accessor :redirect_url
     attr_accessor :service_id
     attr_reader :usage_reports
+    attr_reader :user_usage_reports
     attr_reader :hierarchy # Not part of the stable API
 
     def initialize
       super
       @usage_reports = []
+      @user_usage_reports = []
 
       # hierarchy is a hash where the keys are metric names, and the values
       # their children (array of metric names).
@@ -53,6 +56,10 @@ module ThreeScale
 
     def add_usage_report(options)
       @usage_reports << UsageReport.new(options)
+    end
+
+    def add_user_usage_report(options)
+      @user_usage_reports << UsageReport.new(options)
     end
 
     def add_metric_to_hierarchy(metric_name, children)
