@@ -186,6 +186,42 @@ class ThreeScale::ClientTest < MiniTest::Test
     assert response.success?
   end
 
+  def test_successful_authorize_with_user_id
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+              <user_plan>example_user_plan</user_plan>
+              <user_usage_reports>
+                <usage_report metric="test_method" period="day">
+                  <period_start>2017-06-12 00:00:00 +0000</period_start>
+                  <period_end>2017-06-13 00:00:00 +0000</period_end>
+                  <max_value>5</max_value>
+                  <current_value>1</current_value>
+                </usage_report>
+              </user_usage_reports>
+            </status>'
+
+    uri = "http://#{@host}/transactions/authorize.xml?provider_key=1234abcd&"\
+          "user_key=foo&user_id=a_user_id"
+    FakeWeb.register_uri(:get, uri, :status => ['200', 'OK'], :body => body)
+
+    response = @client.authorize(:user_key => 'foo', :user_id => 'a_user_id')
+
+    assert response.success?
+    assert !response.limits_exceeded?
+    assert_equal 'Ultimate', response.plan
+    assert_equal 'example_user_plan', response.user_plan
+    assert_equal 0, response.usage_reports.size
+    assert_equal 1, response.user_usage_reports.size
+
+    user_usage_report = response.user_usage_reports[0]
+    assert_equal :day, user_usage_report.period
+    assert_equal Time.utc(2017, 6, 12), user_usage_report.period_start
+    assert_equal Time.utc(2017, 6, 13), user_usage_report.period_end
+    assert_equal 1, user_usage_report.current_value
+    assert_equal 5, user_usage_report.max_value
+  end
+
   def test_authorize_with_exceeded_usage_limits
     body = '<status>
               <authorized>false</authorized>
@@ -399,6 +435,44 @@ class ThreeScale::ClientTest < MiniTest::Test
     assert_equal 0, response.usage_reports[1].max_value
   end
 
+  def test_successful_oauth_authorize_with_user_id
+    body = '<status>
+              <authorized>true</authorized>
+              <plan>Ultimate</plan>
+              <user_plan>example_user_plan</user_plan>
+              <user_usage_reports>
+                <usage_report metric="test_method" period="day">
+                  <period_start>2017-06-12 00:00:00 +0000</period_start>
+                  <period_end>2017-06-13 00:00:00 +0000</period_end>
+                  <max_value>5</max_value>
+                  <current_value>1</current_value>
+                </usage_report>
+              </user_usage_reports>
+            </status>'
+
+    uri = "http://#{@host}/transactions/oauth_authorize.xml?provider_key=1234abcd&"\
+          "app_id=an_id&app_key=a_key&user_id=a_user_id"
+    FakeWeb.register_uri(:get, uri, :status => ['200', 'OK'], :body => body)
+
+    response = @client.oauth_authorize(:app_id => 'an_id',
+                                       :app_key => 'a_key',
+                                       :user_id => 'a_user_id')
+
+    assert response.success?
+    assert !response.limits_exceeded?
+    assert_equal 'Ultimate', response.plan
+    assert_equal 'example_user_plan', response.user_plan
+    assert_equal 0, response.usage_reports.size
+    assert_equal 1, response.user_usage_reports.size
+
+    user_usage_report = response.user_usage_reports[0]
+    assert_equal :day, user_usage_report.period
+    assert_equal Time.utc(2017, 6, 12), user_usage_report.period_start
+    assert_equal Time.utc(2017, 6, 13), user_usage_report.period_end
+    assert_equal 1, user_usage_report.current_value
+    assert_equal 5, user_usage_report.max_value
+  end
+
   def test_oauth_authorize_with_exceeded_usage_limits
     body = '<status>
               <authorized>false</authorized>
@@ -605,6 +679,31 @@ class ThreeScale::ClientTest < MiniTest::Test
     payload = {
         'transactions[0][app_id]'      => 'an_app_id',
         'transactions[0][timestamp]'   => '2016-07-18 15:42:17 0200',
+        'transactions[0][usage][hits]' => '1',
+        'provider_key'                 => '1234abcd',
+        'service_id'                   => 'a_service_id'
+    }
+
+    assert_equal URI.encode_www_form(payload), request.body
+  end
+
+  def test_report_with_user_id
+    FakeWeb.register_uri(:post, "http://#{@host}/transactions.xml",
+                         :status => ['200', 'OK'])
+
+    transactions = [{ :app_id    => 'an_app_id',
+                      :user_id   => 'a_user_id',
+                      :usage     => { 'hits' => 1 },
+                      :timestamp => '2016-07-18 15:42:17 0200' }]
+
+    @client.report(transactions: transactions, service_id: 'a_service_id')
+
+    request = FakeWeb.last_request
+
+    payload = {
+        'transactions[0][app_id]'      => 'an_app_id',
+        'transactions[0][timestamp]'   => '2016-07-18 15:42:17 0200',
+        'transactions[0][user_id]'     => 'a_user_id',
         'transactions[0][usage][hits]' => '1',
         'provider_key'                 => '1234abcd',
         'service_id'                   => 'a_service_id'
