@@ -129,6 +129,8 @@ module ThreeScale
     #                    from the UTC. For example, "US Pacific Time" has offset -0800, "Tokyo"
     #                    has offset +0900. This parameter is optional, and if not provided, equals
     #                    to the current time.
+    #         user_id:   Identifies an end user. Required only when the application is rate limiting
+    #                    end users.
     #   service_id::     ID of the service. It is optional. When not specified, the transactions
     #                    are reported to the default service.
     #   service_token::  Token granting access to the specified service ID.
@@ -206,6 +208,8 @@ module ThreeScale
     #   app_key::       secret key assigned to the application. Required only if application has
     #                   a key defined.
     #   service_id::    id of the service (required if you have more than one service)
+    #   user_id::       id of an end user. Required only when the application is rate limiting
+    #                   end users.
     #   usage::         predicted usage. It is optional. It is a hash where the keys are metrics
     #                   and the values their predicted usage.
     #                   Example: {'hits' => 1, 'my_metric' => 100}
@@ -257,6 +261,8 @@ module ThreeScale
     #   service_token:: token granting access to the specified service_id.
     #   app_id::        id of the application to authorize. This is required.
     #   service_id::    id of the service (required if you have more than one service)
+    #   user_id::       id of an end user. Required only when the application is rate limiting
+    #                   end users.
     #   usage::         predicted usage. It is optional. It is a hash where the keys are metrics
     #                   and the values their predicted usage.
     #                   Example: {'hits' => 1, 'my_metric' => 100}
@@ -303,9 +309,9 @@ module ThreeScale
 
     private
 
-    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url, :usage]
-    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage]
-    REPORT_PARAMS = [:user_key, :app_id, :service_id, :timestamp]
+    OAUTH_PARAMS = [:app_id, :app_key, :service_id, :redirect_url, :usage, :user_id]
+    ALL_PARAMS = [:user_key, :app_id, :app_key, :service_id, :redirect_url, :usage, :user_id]
+    REPORT_PARAMS = [:user_key, :app_id, :service_id, :timestamp, :user_id]
 
     def options_to_params(options, allowed_keys)
       params = {}
@@ -379,16 +385,15 @@ module ThreeScale
 
       response.plan = doc.at_css('plan').content.to_s.strip
 
-      doc.css('usage_reports usage_report').each do |node|
-        period_start = node.at('period_start')
-        period_end = node.at('period_end')
+      xml_user_plan = doc.at_css('user_plan')
+      response.user_plan = xml_user_plan.content.to_s.strip if xml_user_plan
 
-        response.add_usage_report(:metric        => node['metric'].to_s.strip,
-                                  :period        => node['period'].to_s.strip.to_sym,
-                                  :period_start  => period_start ? period_start.content : '',
-                                  :period_end    => period_end ? period_end.content : '',
-                                  :current_value => node.at('current_value').content.to_i,
-                                  :max_value     => node.at('max_value').content.to_i)
+      doc.css('usage_reports usage_report').each do |node|
+        response.add_usage_report(usage_report(node))
+      end
+
+      doc.css('user_usage_reports usage_report').each do |node|
+        response.add_user_usage_report(usage_report(node))
       end
 
       doc.css('hierarchy metric').each do |node|
@@ -398,6 +403,19 @@ module ThreeScale
       end
 
       response
+    end
+
+    # It can be a user usage report or an app usage report
+    def usage_report(node)
+      period_start = node.at('period_start')
+      period_end = node.at('period_end')
+
+      { :metric        => node['metric'].to_s.strip,
+        :period        => node['period'].to_s.strip.to_sym,
+        :period_start  => period_start ? period_start.content : '',
+        :period_end    => period_end ? period_end.content : '',
+        :current_value => node.at('current_value').content.to_i,
+        :max_value     => node.at('max_value').content.to_i }
     end
 
     def build_error_response(body, klass = Response)
