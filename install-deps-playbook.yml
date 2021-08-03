@@ -1,0 +1,50 @@
+---
+  - name: Install 3scale gem Dependencies
+    hosts: 3scale-dev
+    #become: yes
+    become_user: root
+    user: ec2-user
+    tasks:
+        - name: Install Development Tools
+          become: yes
+          yum:
+              name: "@Development Tools"
+              state: present
+
+        - name: Install SSL headers
+          become: yes
+          yum:
+            name: 'openssl-devel'
+            state: present
+        - name: Install readline-devel
+          become: yes
+          yum:
+            name: 'readline-devel'
+            state: present
+
+        - name: Clone rbenv
+          ansible.builtin.git:
+            repo: 'https://github.com/rbenv/rbenv.git'
+            dest: '~/.rbenv'
+            clone: yes
+
+        - name: Add rbenv to path
+          lineinfile:
+            path: '~/.bash_profile'
+            regexp: '^PATH='
+            line: 'PATH=$HOME/.rbenv/bin:$PATH:$HOME/.local/bin:$HOME/bin'
+
+        - name: Create rbenv plugins directory
+          file:
+            path: '~/.rbenv/plugins'
+            state: directory
+            recurse: yes
+            owner: ec2-user
+            group: ec2-user
+
+        - name: Install ruby-build
+          ansible.builtin.git:
+            repo: 'https://github.com/rbenv/ruby-build.git'
+            dest: '~/.rbenv/plugins/ruby-build'
+            clone: yes
+
